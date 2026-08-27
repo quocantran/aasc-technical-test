@@ -1,0 +1,17 @@
+{
+  "name": "bai-2-fibonacci",
+  "version": "1.0.0",
+  "description": "Calculate 50th Fibonacci number using Dynamic Programming and BigInt",
+  "main": "fibonacci.js",
+  "scripts": {
+    "start": "node benchmark.js",
+    "benchmark": "node benchmark.js",
+    "test": "node benchmark.js"
+  },
+  "keywords": [
+    "fibonacci",
+    "dynamic-programming",
+    "bigint"
+  ],
+  "license": "MIT"
+}
