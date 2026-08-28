@@ -26,7 +26,6 @@ Thumbs.db
 .settings
 /lib/
 /nbproject/
-/package-lock.json
 
 # Environment
 .env
