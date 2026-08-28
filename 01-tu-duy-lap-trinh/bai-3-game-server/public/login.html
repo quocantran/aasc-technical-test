@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập / Đăng ký — Cổng Game</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="/index.html" class="brand">
+      <span class="brand-icon">🎮</span>
+      <span class="brand-title">ArcadeHub</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/index.html" class="nav-link">Trang chủ</a>
+      <a href="/line98.html" class="nav-link">Line 98</a>
+      <a href="/caro.html" class="nav-link">Cờ Caro X O</a>
+      <div id="nav-auth-container"></div>
+    </nav>
+  </header>
+
+  <!-- Auth Box -->
+  <main class="container">
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <div id="tab-login" class="auth-tab active" onclick="switchAuthTab(true)">Đăng nhập</div>
+        <div id="tab-register" class="auth-tab" onclick="switchAuthTab(false)">Đăng ký</div>
+      </div>
+
+      <h2 id="auth-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; text-align: center;">Chào mừng trở lại</h2>
+      <p id="auth-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; text-align: center;">
+        Đăng nhập để tiếp tục chơi Line 98 và Cờ Caro online.
+      </p>
+
+      <form onsubmit="handleAuthSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="auth-username">Tên tài khoản</label>
+          <input type="text" id="auth-username" class="form-input" placeholder="Nhập tên tài khoản (tối thiểu 3 ký tự)" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="auth-password">Mật khẩu</label>
+          <input type="password" id="auth-password" class="form-input" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required>
+        </div>
+
+        <button type="submit" id="btn-submit-auth" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          Đăng nhập
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

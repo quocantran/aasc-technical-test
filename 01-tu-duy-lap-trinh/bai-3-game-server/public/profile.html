@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông tin tài khoản — Cổng Game</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="/index.html" class="brand">
+      <span class="brand-icon">🎮</span>
+      <span class="brand-title">ArcadeHub</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/index.html" class="nav-link">Trang chủ</a>
+      <a href="/line98.html" class="nav-link">Line 98</a>
+      <a href="/caro.html" class="nav-link">Cờ Caro X O</a>
+      <div id="nav-auth-container"></div>
+    </nav>
+  </header>
+
+  <!-- Profile Box -->
+  <main class="container">
+    <div class="auth-box">
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; text-align: center;">Thông tin tài khoản</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; text-align: center;">
+        Cập nhật biệt danh hiển thị và địa chỉ email của bạn.
+      </p>
+
+      <form onsubmit="handleProfileUpdate(event)">
+        <div class="form-group">
+          <label class="form-label" for="profile-username">Tên đăng nhập (Cố định)</label>
+          <input type="text" id="profile-username" class="form-input" disabled style="opacity: 0.6; cursor: not-allowed;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="profile-nickname">Biệt danh hiển thị</label>
+          <input type="text" id="profile-nickname" class="form-input" placeholder="Ví dụ: CaoThuCaro99">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="profile-email">Địa chỉ Email</label>
+          <input type="email" id="profile-email" class="form-input" placeholder="Ví dụ: player@example.com">
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <a href="/index.html" class="btn btn-secondary" style="flex: 1;">Quay lại</a>
+          <button type="submit" id="btn-save-profile" class="btn btn-primary" style="flex: 1;">Lưu thay đổi</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>

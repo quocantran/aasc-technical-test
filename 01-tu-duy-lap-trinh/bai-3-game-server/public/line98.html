@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Line 98 — Xếp bóng màu cổ điển</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="/index.html" class="brand">
+      <span class="brand-icon">🎮</span>
+      <span class="brand-title">ArcadeHub</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/index.html" class="nav-link">Trang chủ</a>
+      <a href="/line98.html" class="nav-link active">Line 98</a>
+      <a href="/caro.html" class="nav-link">Cờ Caro X O</a>
+      <div id="nav-auth-container"></div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="game-layout">
+      <!-- Canvas Panel -->
+      <div class="game-canvas-panel">
+        <canvas id="line98-canvas" width="540" height="540" style="background: rgba(0, 0, 0, 0.4); border-radius: var(--radius-md); cursor: pointer;"></canvas>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="game-sidebar">
+        <!-- Score Panel -->
+        <div class="side-panel" style="text-align: center;">
+          <div class="panel-title" style="justify-content: center;">🏆 Điểm số</div>
+          <div id="score-val" class="score-display">0</div>
+        </div>
+
+        <!-- Next Balls Preview -->
+        <div class="side-panel">
+          <div class="panel-title">🔮 Bóng tiếp theo</div>
+          <div id="next-balls-preview" class="next-balls-container">
+            <div class="next-ball" style="background: #333;"></div>
+            <div class="next-ball" style="background: #333;"></div>
+            <div class="next-ball" style="background: #333;"></div>
+          </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="side-panel" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <button id="btn-hint" class="btn btn-secondary" onclick="requestHint()" style="width: 100%;">
+            💡 Gợi ý nước đi
+          </button>
+          <button id="btn-new-game" class="btn btn-primary" onclick="startNewGame()" style="width: 100%;">
+            🔄 Ván mới
+          </button>
+        </div>
+
+        <!-- Instructions -->
+        <div class="side-panel" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          <div class="panel-title" style="font-size: 0.9rem;">📖 Hướng dẫn chơi</div>
+          <p>• Nhấp vào một quả bóng để chọn, sau đó nhấp vào ô trống để di chuyển.</p>
+          <p style="margin-top: 0.3rem;">• Xếp <strong>từ 5 quả bóng trở lên</strong> cùng màu thành hàng (ngang, dọc, chéo) để ăn điểm và dọn bóng.</p>
+          <p style="margin-top: 0.3rem;">• Mỗi nước đi không ăn điểm sẽ sinh thêm 3 quả bóng mới!</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Game Over Modal -->
+  <div id="game-over-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">💥</div>
+      <h2 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent-rose);">Trò chơi kết thúc!</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Không còn ô trống nào trên bàn cờ.</p>
+      <div style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        Điểm số đạt được: <span id="final-score" style="font-weight: 800; font-size: 1.75rem; color: var(--accent-cyan);">0</span>
+      </div>
+      <button class="btn btn-primary" onclick="restartFromModal()" style="width: 100%;">Chơi lại</button>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/socket.js"></script>
+  <script src="/js/line98.js"></script>
+</body>
+</html>

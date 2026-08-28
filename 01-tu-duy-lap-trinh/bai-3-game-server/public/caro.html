@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cờ Caro X O — Thi đấu trực tuyến 1v1</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="/index.html" class="brand">
+      <span class="brand-icon">🎮</span>
+      <span class="brand-title">ArcadeHub</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/index.html" class="nav-link">Trang chủ</a>
+      <a href="/line98.html" class="nav-link">Line 98</a>
+      <a href="/caro.html" class="nav-link active">Cờ Caro X O</a>
+      <div id="nav-auth-container"></div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="game-layout">
+      <!-- Canvas Panel -->
+      <div class="game-canvas-panel">
+        <!-- Match Status Bar -->
+        <div id="match-status-bar" style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <div id="match-status-text" style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">
+            Sẵn sàng thi đấu. Bấm "Tìm trận" để bắt đầu.
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button id="btn-cancel-match" class="btn btn-secondary" onclick="cancelFindMatch()" style="display: none; padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--accent-rose);">
+              ✕ Hủy tìm
+            </button>
+            <button id="btn-find-match" class="btn btn-amber" onclick="findMatch()" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
+              ⚔️ Tìm trận
+            </button>
+          </div>
+        </div>
+
+        <!-- 15x15 Canvas -->
+        <canvas id="caro-canvas" width="540" height="540" style="background: rgba(0, 0, 0, 0.4); border-radius: var(--radius-md); cursor: crosshair;"></canvas>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="game-sidebar">
+        <!-- Players Info Panel -->
+        <div class="side-panel">
+          <div class="panel-title">👥 Người chơi trong ván</div>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+            <!-- Player X -->
+            <div id="card-player-x" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); border: 1px solid rgba(244, 63, 94, 0.2);">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 800; color: var(--accent-rose); font-size: 1.2rem;">✕</span>
+                <span id="name-player-x" style="font-weight: 600; font-size: 0.9rem;">Người chơi X (Đang chờ...)</span>
+              </div>
+              <span id="turn-badge-x" class="game-tag" style="display: none; background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); font-weight: 700;">LƯỢT ĐI</span>
+            </div>
+
+            <!-- Player O -->
+            <div id="card-player-o" style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.2);">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 800; color: var(--primary); font-size: 1.2rem;">◯</span>
+                <span id="name-player-o" style="font-weight: 600; font-size: 0.9rem;">Người chơi O (Đang chờ...)</span>
+              </div>
+              <span id="turn-badge-o" class="game-tag" style="display: none; background: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: 700;">LƯỢT ĐI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match History Panel -->
+        <div class="side-panel">
+          <div class="panel-title" style="justify-content: space-between;">
+            <span>📜 Lịch sử đấu gần đây</span>
+            <button onclick="loadMatchHistory()" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Làm mới</button>
+          </div>
+          <div id="history-list" class="history-list" style="margin-top: 0.5rem;">
+            <div style="color: var(--text-sub); font-size: 0.85rem; text-align: center; padding: 1rem;">
+              Chưa có lịch sử đấu nào.
+            </div>
+          </div>
+        </div>
+
+        <!-- Rules Panel -->
+        <div class="side-panel" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          <div class="panel-title" style="font-size: 0.9rem;">📖 Luật chơi Cờ Caro 15×15</div>
+          <p>• Hai người chơi luân phiên đặt quân X và O vào ô trống.</p>
+          <p style="margin-top: 0.3rem;">• Người đầu tiên xếp được <strong>5 quân liên tiếp</strong> (hàng ngang, dọc hoặc chéo) sẽ chiến thắng.</p>
+          <p style="margin-top: 0.3rem;">• Nếu đối thủ ngắt kết nối / thoát giữa chừng, chiến thắng tự động thuộc về người ở lại.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Game Over Modal -->
+  <div id="caro-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div id="modal-icon" style="font-size: 3.5rem; margin-bottom: 0.75rem;">🏆</div>
+      <h2 id="modal-title" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent-emerald);">Chiến Thắng!</h2>
+      <p id="modal-desc" style="color: var(--text-muted); margin-bottom: 1.5rem;">Bạn đã nối liền 5 quân cờ!</p>
+      <button class="btn btn-primary" onclick="closeCaroModal()" style="width: 100%;">Chơi ván khác</button>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/socket.js"></script>
+  <script src="/js/caro.js"></script>
+</body>
+</html>
