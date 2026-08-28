@@ -1,0 +1,18 @@
+# Dependency directories
+node_modules/
+
+# TypeScript compilation output
+dist/
+
+# Environment files
+.env
+.env.local
+!.env.example
+
+# Log files and directories
+logs/
+*.log
+
+# Operating System files
+.DS_Store
+Thumbs.db
