@@ -8,9 +8,13 @@
 
 1. **OAuth 2.0 & Token Lifecycle:** Nhận sự kiện cài đặt tại `/install`, lưu trữ Token an toàn vào SQLite qua TypeORM. Tự động kiểm tra thời hạn và làm mới Token (Reactive 401 Auto-Refresh & Retry).
 2. **Quản lý Contact & Requisites 3 Tầng Chuẩn Bitrix24:** 
-   $$\text{Contact (ID)} \xrightarrow{\text{ENTITY\_TYPE\_ID = 3}} \text{Requisite (ID)} \xrightarrow{\text{ENTITY\_ID = Requisite ID}} \text{Bank Detail}$$
+   ```mermaid
+   graph LR
+       A["Contact (ID)"] -->|"ENTITY_TYPE_ID = 3"| B["Requisite (ID)"]
+       B -->|"ENTITY_ID = Requisite ID"| C["Bank Detail"]
+   ```
 3. **Bitrix24 Batch API Engine (`/rest/batch.json`):** Tối ưu hóa toàn bộ các luồng `create`, `findOne`, `update` bằng cách gom nhiều lệnh vào **1 HTTP request duy nhất**, hỗ trợ tham chiếu động (`$result[cmd_name]`), giúp tối ưu hóa tối đa độ trễ mạng và tiết kiệm hạn ngạch gọi API của Bitrix24.
-4. **Tối Ưu Hiệu Năng (Giải quyết $O(N)$ N+1 Query):** Sử dụng Batch Fetching Requisites (`@ENTITY_ID`) và Bank Details trong `findAll()` để lấy toàn bộ danh sách liên hệ chỉ qua vài lượt gọi gom nhóm thay vì gọi lặp từng bản ghi.
+4. **Tối Ưu Hiệu Năng (Giải quyết N+1 Query):** Sử dụng Batch Fetching Requisites (`@ENTITY_ID`) và Bank Details trong `findAll()` để lấy toàn bộ danh sách liên hệ chỉ qua vài lượt gọi gom nhóm thay vì gọi lặp từng bản ghi.
 5. **Bảo Mật & Chuẩn Hóa:** Xác thực qua Header `x-api-key`, DTO validation nghiêm ngặt (`class-validator`), Exception Filter chuẩn hóa cấu trúc lỗi JSON toàn cục.
 6. **Tài Liệu Tự Động:** Swagger UI tích hợp sẵn tại `/docs`.
 
