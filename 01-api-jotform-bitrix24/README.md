@@ -91,7 +91,7 @@ sequenceDiagram
 1. Đăng nhập vào cổng Bitrix24 của bạn.
 2. Điều hướng tới: **Ứng dụng (Applications)** $\rightarrow$ **Tài nguyên cho nhà phát triển (Developer resources)** $\rightarrow$ **Khác (Other)** $\rightarrow$ Chọn **Webhook vào (Inbound webhook)**.
 
-![Tạo Webhook vào trên Bitrix24](./assets/webhook-bitrix24.png)
+![Tạo Webhook vào trên Bitrix24](./assets/bitrix24-inbound-webhook.png)
 
 3. Tại mục **Các quyền truy cập (Permissions)**: Tích chọn quyền **`CRM`** (*Quản trị quan hệ khách hàng*).
 4. Bấm **Lưu (Save)**.
