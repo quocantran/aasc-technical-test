@@ -1,128 +1,116 @@
 # Bài 1: Nghiên cứu và Triển khai Task API với NestJS
 
-RESTful API quản lý Task được xây dựng với **NestJS**, **MongoDB (Mongoose)**, **Docker Compose**, **Swagger (OpenAPI)** và **Jest**.
+RESTful API quản lý công việc (Task Management) được xây dựng với **NestJS**, **MongoDB (Mongoose)**, **Docker Compose**, **Swagger (OpenAPI)** và kiểm thử tự động với **Jest**.
 
 ---
 
-## 1. NestJS Architecture
+## 1. Kiến trúc NestJS và Vai trò các Thành phần
 
-### Modules
-Đóng vai trò là các khối xây dựng (building blocks) dùng để tổ chức mã nguồn thành các cụm tính năng độc lập, quản lý việc đóng gói (encapsulation), chia sẻ tài nguyên và thiết lập Dependency Injection (DI) trong ứng dụng.
+### Modules (Mô-đun)
+Đóng vai trò là các khối xây dựng (building blocks) tổ chức mã nguồn thành các cụm tính năng độc lập, quản lý việc đóng gói (encapsulation), chia sẻ tài nguyên và thiết lập cơ chế Dependency Injection (DI) trong toàn bộ ứng dụng.
 
-### Controllers
-Controllers chịu trách nhiệm định tuyến HTTP requests và gọi các services tương ứng. Validation và transformation dữ liệu đầu vào được xử lý thông qua Pipes kết hợp với DTOs.
+### Controllers (Bộ điều khiển)
+Chịu trách nhiệm tiếp nhận, định tuyến các yêu cầu HTTP (HTTP requests) từ client và chuyển tiếp xử lý tới Service tương ứng. Quá trình kiểm tra tính hợp lệ (Validation) và chuyển đổi kiểu dữ liệu đầu vào (Transformation) được thực hiện thông qua Pipes kết hợp với DTOs.
 
-### Services / Providers
-Chứa toàn bộ logic nghiệp vụ (business logic) và thao tác với cơ sở dữ liệu. Services được tách biệt hoàn toàn khỏi tầng giao tiếp HTTP, giúp dễ bảo trì và viết Unit Test độc lập.
+### Services / Providers (Dịch vụ xử lý nghiệp vụ)
+Chứa toàn bộ logic nghiệp vụ (business logic) và các thao tác tương tác với cơ sở dữ liệu. Services được tách biệt hoàn toàn khỏi tầng giao tiếp HTTP, giúp mã nguồn dễ bảo trì, tái sử dụng và viết Unit Test độc lập.
 
-### TypeScript Support
-- **Decorators (`@Prop()`, `@Get()`, `@InjectModel()`...)**: Cung cấp cách khai báo metadata thanh lịch, giảm thiểu boilerplate code.
-- **Type Safety**: Đảm bảo an toàn kiểu dữ liệu từ DTO, Mongoose Schema đến Service/Controller ngay từ thời điểm biên dịch (Compile-time).
-- **Dependency Injection**: Tự động nhận diện và inject dependencies thông qua TypeScript reflection metadata (`reflect-metadata`).
+### Vai trò và cách NestJS sử dụng TypeScript
+- **Decorators (`@Prop()`, `@Get()`, `@InjectModel()`...)**: Cung cấp cú pháp khai báo metadata trực quan, giảm thiểu mã mẫu (boilerplate code).
+- **Kiểm soát kiểu dữ liệu tĩnh (Type Safety)**: Đảm bảo an toàn kiểu dữ liệu xuyên suốt từ DTO, Mongoose Schema tới Service/Controller ngay từ thời điểm biên dịch (Compile-time), giảm thiểu lỗi runtime.
+- **Tiêm phụ thuộc tự động (Dependency Injection)**: Tự động nhận diện và inject dependencies thông qua TypeScript reflection metadata (`reflect-metadata`).
 
 ---
 
-## 2. Task Document / Mongoose Schema
+## 2. Mô hình Dữ liệu Task (Mongoose Schema)
 
-| Field | Type | Constraints | Description |
+| Trường (Field) | Kiểu dữ liệu (Type) | Ràng buộc (Constraints) | Mô tả (Description) |
 | :--- | :--- | :--- | :--- |
-| `id` | `String` (UUID v4) | Unique, Indexed, Required | Unique identifier |
-| `title` | `String` | Required, Trimmed | Task title |
-| `description` | `String` | Optional, Default: `""` | Detailed description |
-| `status` | `Enum` | `"To Do"`, `"In Progress"`, `"Done"` | Task status (Default: `"To Do"`) |
-| `createdAt` | `Date` | Default: `Date.now` | Creation timestamp |
+| `id` | `String` (UUID v4) | Duy nhất (Unique), Đánh chỉ mục (Indexed), Bắt buộc | Mã định danh duy nhất của task |
+| `title` | `String` | Bắt buộc (Required), Cắt khoảng trắng (Trimmed) | Tiêu đề công việc |
+| `description` | `String` | Tùy chọn, Mặc định: `""`, Cắt khoảng trắng | Mô tả chi tiết công việc |
+| `status` | `Enum` | `"To Do"`, `"In Progress"`, `"Done"` | Trạng thái công việc (Mặc định: `"To Do"`) |
+| `createdAt` | `Date` | Mặc định: `Date.now` | Thời gian tạo bản ghi |
 
 ---
 
-## 3. RESTful API Endpoints
+## 3. Danh sách Endpoints RESTful API
 
-Global Prefix: `/api/v1`  
-Swagger Documentation: `http://localhost:3000/docs`
+- **Tiền tố API toàn cục (Global Prefix)**: `/api/v1`  
+- **Tài liệu giao diện Swagger (OpenAPI)**: `http://localhost:3000/docs`
 
-| Method | Endpoint | Description | Status |
+| Phương thức | Đường dẫn (Endpoint) | Mô tả chức năng | Mã phản hồi |
 | :---: | :--- | :--- | :---: |
-| `POST` | `/api/v1/tasks` | Create a new task | `201 Created` |
-| `GET` | `/api/v1/tasks` | Get all tasks (sorted by createdAt descending) | `200 OK` |
-| `GET` | `/api/v1/tasks/:id` | Get task by UUID | `200 OK` / `404` |
-| `PATCH` | `/api/v1/tasks/:id` | Update task by UUID | `200 OK` / `404` |
-| `DELETE` | `/api/v1/tasks/:id` | Delete task by UUID | `200 OK` / `404` |
+| `POST` | `/api/v1/tasks` | Tạo mới một công việc | `201 Created` |
+| `GET` | `/api/v1/tasks` | Lấy danh sách tất cả công việc (sắp xếp giảm dần theo thời gian tạo) | `200 OK` |
+| `GET` | `/api/v1/tasks/:id` | Lấy chi tiết công việc theo ID (UUID) | `200 OK` / `404` |
+| `PATCH` | `/api/v1/tasks/:id` | Cập nhật thông tin công việc theo ID (UUID) | `200 OK` / `404` |
+| `DELETE` | `/api/v1/tasks/:id` | Xóa công việc theo ID (UUID) | `200 OK` / `404` |
 
-### Swagger OpenAPI Documentation:
-![Swagger API Documentation](./assets/swagger.png)
+### Giao diện Tài liệu Swagger OpenAPI:
+![Giao diện Swagger API](./assets/swagger.png)
 
 ---
 
-## 4. Setup & Running Instructions
+## 4. Hướng dẫn Cài đặt và Khởi chạy
 
-### Step 1: Prepare Environment Configuration
+### Bước 1: Chuẩn bị tệp cấu hình môi trường
 ```bash
 cp .env.example .env
 ```
 
-### Step 2: Start MongoDB with Docker
+### Bước 2: Khởi động cơ sở dữ liệu MongoDB bằng Docker Compose
 ```bash
 docker compose up -d
 ```
 
-### Step 3: Install Dependencies & Start Server
+### Bước 3: Cài đặt các gói phụ thuộc và chạy ứng dụng
 ```bash
 npm install
 npm run start:dev
 ```
-- Server: `http://localhost:3000/api/v1`
-- Swagger UI: `http://localhost:3000/docs`
+- Địa chỉ máy chủ API: `http://localhost:3000/api/v1`
+- Giao diện Swagger UI: `http://localhost:3000/docs`
 
 ---
 
-## 5. Seeder & Performance Benchmark
+## 5. Dữ liệu Mẫu (Seeder) & Kiểm thử Hiệu năng (Benchmark)
 
-### 5.1. Database Seeder (100 Sample Tasks)
-Chạy script tự động tạo 100 tasks mẫu có index UUID vào MongoDB:
+### 5.1. Khởi tạo 100 Task mẫu (Database Seeder)
+Chạy script tự động nạp 100 tasks mẫu có đánh chỉ mục UUID vào cơ sở dữ liệu MongoDB:
 ```bash
 npm run seed
 ```
 
-### 5.2. Performance Benchmark
-The benchmark uses 100 Task records and sends 100 GET requests to `/api/v1/tasks`:
+### 5.2. Đo lường Hiệu năng API (Latency Benchmark)
+Kịch bản kiểm thử gửi 100 yêu cầu GET liên tiếp tới endpoint `/api/v1/tasks` với cơ sở dữ liệu chứa sẵn 100 bản ghi:
 ```bash
 npm run benchmark
 ```
 
-| Metric | Result |
+| Chỉ số đo lường | Kết quả thực tế |
 | :--- | :---: |
-| Records | 100 |
-| Requests | 100 |
-| Min latency | 3.80 ms |
-| Average latency | 5.13 ms |
-| P95 latency | 9.90 ms |
-| Max latency | 15.45 ms |
-| Requirement | < 200 ms |
-| Status | PASS |
+| Số lượng bản ghi trong CSDL | 100 bản ghi |
+| Số lượng yêu cầu HTTP gửi đi | 100 yêu cầu |
+| Độ trễ thấp nhất (Min latency) | 3.80 ms |
+| Độ trễ trung bình (Average latency) | 5.13 ms |
+| Độ trễ phân vị 95 (P95 latency) | 9.90 ms |
+| Độ trễ cao nhất (Max latency) | 15.45 ms |
+| **Yêu cầu đề bài** | **< 200 ms** |
+| **Đánh giá kết quả** | **ĐẠT (PASS)** |
 
-### Benchmark Terminal Output:
-![Benchmark Result](./assets/benchmark.png)
+### Kết quả đo lường thực tế trên Terminal:
+![Kết quả Benchmark](./assets/benchmark.png)
 
 ---
 
-## 6. Automated Unit Tests
+## 6. Kiểm thử Tự động (Unit Tests)
 
-Bộ kiểm thử Jest bao phủ đầy đủ **10/10 test cases** cho `TaskService`:
+Bộ kiểm thử Jest bao phủ đầy đủ **10/10 kịch bản kiểm thử** cho `TaskService`:
 
 ```bash
 npm test
 ```
+### Kết quả chạy Unit Test thực tế:
+![Kết quả Unit Test](./assets/test.png)
 
-### Test Suite Summary:
-1. `should be defined` — Khởi tạo service thành công với Mock Model.
-2. `create - should create a new task with generated UUID and default "To Do" status`
-3. `create - should create a task with custom status when specified`
-4. `findAll - should return array of tasks sorted by createdAt descending`
-5. `findOne - should return a task when valid UUID is provided`
-6. `findOne - should throw NotFoundException when task with UUID does not exist`
-7. `update - should update task title and status successfully`
-8. `update - should throw NotFoundException when updating non-existent task`
-9. `remove - should delete a task and return success message with ID`
-10. `remove - should throw NotFoundException when deleting non-existent task`
-
-### Unit Test Execution Output:
-![Unit Test Results](./assets/test.png)
