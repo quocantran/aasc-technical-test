@@ -6,8 +6,8 @@
 - **Xử lý số lớn**: Sử dụng kiểu dữ liệu `BigInt` trong JavaScript để đảm bảo tính toán chính xác tuyệt đối, tránh giới hạn tràn số an toàn của `Number`.
 
 ## 2. Phân tích độ phức tạp
-- **Time Complexity**: $\mathcal{O}(n)$ — Thuật toán thực hiện $n - 1$ phép tính tuần tự để tính $F(n)$.
-- **Space Complexity**: $\mathcal{O}(1)$ — Tối ưu bộ nhớ, chỉ sử dụng 3 biến phụ trợ (`prev2`, `prev1`, `current`).
+- **Time Complexity (Thời gian)**: $\mathcal{O}(n)$ — Thuật toán thực hiện đúng $n - 1$ phép cộng tuần tự để tính $F(n)$, loại bỏ hoàn toàn các phép tính trùng lặp của đệ quy thông thường ($\mathcal{O}(2^n)$).
+- **Space Complexity (Không gian bộ nhớ)**: $\mathcal{O}(1)$ — Tối ưu bộ nhớ tối đa bằng cách chỉ sử dụng 3 biến phụ trợ (`prev2`, `prev1`, `current`). So với phương pháp Memoization dùng mảng/Map ($\mathcal{O}(n)$ không gian), phương pháp Bottom-Up này tiết kiệm $100\%$ dung lượng RAM phụ trợ.
 
 ## 3. Kết quả kiểm tra tính đúng đắn
 - $F(10) = \mathbf{55}$
