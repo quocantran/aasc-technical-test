@@ -21,7 +21,10 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const existing = await this.userModel.findOne({ username: dto.username }).lean().exec();
+    const existing = await this.userModel
+      .findOne({ username: dto.username })
+      .lean()
+      .exec();
     if (existing) {
       throw new ConflictException(`Tên tài khoản '${dto.username}' đã tồn tại`);
     }
@@ -48,14 +51,20 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.userModel.findOne({ username: dto.username }).exec();
+    const user = await this.userModel
+      .findOne({ username: dto.username })
+      .exec();
     if (!user) {
-      throw new UnauthorizedException('Tên tài khoản hoặc mật khẩu không chính xác');
+      throw new UnauthorizedException(
+        'Tên tài khoản hoặc mật khẩu không chính xác',
+      );
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException('Tên tài khoản hoặc mật khẩu không chính xác');
+      throw new UnauthorizedException(
+        'Tên tài khoản hoặc mật khẩu không chính xác',
+      );
     }
 
     const payload = {
@@ -98,7 +107,11 @@ export class AuthService {
     if (dto.nickname !== undefined) updateData.nickname = dto.nickname;
 
     const updated = await this.userModel
-      .findByIdAndUpdate(userId, { $set: updateData }, { new: true, runValidators: true })
+      .findByIdAndUpdate(
+        userId,
+        { $set: updateData },
+        { new: true, runValidators: true },
+      )
       .lean()
       .exec();
 

@@ -30,7 +30,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload) {
     const user = await this.userModel.findById(payload.sub).lean().exec();
     if (!user) {
-      throw new UnauthorizedException('Tài khoản người dùng không tồn tại hoặc đã bị xóa');
+      throw new UnauthorizedException(
+        'Tài khoản người dùng không tồn tại hoặc đã bị xóa',
+      );
     }
     return {
       userId: payload.sub,

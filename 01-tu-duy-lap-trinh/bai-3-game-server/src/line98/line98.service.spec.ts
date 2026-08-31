@@ -81,7 +81,11 @@ describe('Line98Service', () => {
       const board = Array.from({ length: 9 }, () => Array(9).fill(0));
       board[0][0] = 1; // Start ball
 
-      const path = service.findPath(board, { row: 0, col: 0 }, { row: 0, col: 4 });
+      const path = service.findPath(
+        board,
+        { row: 0, col: 0 },
+        { row: 0, col: 4 },
+      );
 
       expect(path).not.toBeNull();
       expect(path!.length).toBe(5);
@@ -95,7 +99,11 @@ describe('Line98Service', () => {
       // Put a wall in front
       board[4][5] = 2;
 
-      const path = service.findPath(board, { row: 4, col: 4 }, { row: 4, col: 6 });
+      const path = service.findPath(
+        board,
+        { row: 4, col: 4 },
+        { row: 4, col: 6 },
+      );
       expect(path).not.toBeNull();
       expect(path![0]).toEqual({ row: 4, col: 4 });
       expect(path![path!.length - 1]).toEqual({ row: 4, col: 6 });
@@ -108,7 +116,11 @@ describe('Line98Service', () => {
       board[0][1] = 2;
       board[1][0] = 3;
 
-      const path = service.findPath(board, { row: 0, col: 0 }, { row: 8, col: 8 });
+      const path = service.findPath(
+        board,
+        { row: 0, col: 0 },
+        { row: 8, col: 8 },
+      );
       expect(path).toBeNull();
     });
 
@@ -117,8 +129,12 @@ describe('Line98Service', () => {
       board[0][0] = 1;
       board[0][1] = 2;
 
-      expect(service.findPath(board, { row: 0, col: 0 }, { row: 0, col: 1 })).toBeNull();
-      expect(service.findPath(board, { row: 0, col: 0 }, { row: 0, col: 0 })).toBeNull();
+      expect(
+        service.findPath(board, { row: 0, col: 0 }, { row: 0, col: 1 }),
+      ).toBeNull();
+      expect(
+        service.findPath(board, { row: 0, col: 0 }, { row: 0, col: 0 }),
+      ).toBeNull();
     });
   });
 
@@ -181,7 +197,10 @@ describe('Line98Service', () => {
         board[0][c] = 2;
       }
 
-      const result = service.checkLines(board, [{ row: 0, col: 0 }, { row: 5, col: 5 }]);
+      const result = service.checkLines(board, [
+        { row: 0, col: 0 },
+        { row: 5, col: 5 },
+      ]);
       expect(result.clearedCells.length).toBe(0);
       expect(result.scoreAdded).toBe(0);
       expect(board[0][0]).toBe(2);
@@ -294,7 +313,12 @@ describe('Line98Service', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
       await expect(
-        service.moveBall('nonexistent', 'user-1', { row: 0, col: 0 }, { row: 0, col: 1 }),
+        service.moveBall(
+          'nonexistent',
+          'user-1',
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+        ),
       ).rejects.toThrow(WsException);
 
       // Wrong user
@@ -307,7 +331,12 @@ describe('Line98Service', () => {
         exec: jest.fn().mockResolvedValue(wrongUserGame),
       });
       await expect(
-        service.moveBall('g1', 'user-intruder', { row: 0, col: 0 }, { row: 0, col: 1 }),
+        service.moveBall(
+          'g1',
+          'user-intruder',
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+        ),
       ).rejects.toThrow(WsException);
 
       // Finished game
@@ -320,7 +349,12 @@ describe('Line98Service', () => {
         exec: jest.fn().mockResolvedValue(finishedGame),
       });
       await expect(
-        service.moveBall('g1', 'user-1', { row: 0, col: 0 }, { row: 0, col: 1 }),
+        service.moveBall(
+          'g1',
+          'user-1',
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+        ),
       ).rejects.toThrow(WsException);
 
       // Selected empty cell (no ball at from)
@@ -335,14 +369,24 @@ describe('Line98Service', () => {
         exec: jest.fn().mockResolvedValue(gameWithBoard),
       });
       await expect(
-        service.moveBall('g1', 'user-1', { row: 0, col: 0 }, { row: 0, col: 1 }),
+        service.moveBall(
+          'g1',
+          'user-1',
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+        ),
       ).rejects.toThrow(WsException);
 
       // Target cell already occupied
       board[0][0] = 1;
       board[0][1] = 2;
       await expect(
-        service.moveBall('g1', 'user-1', { row: 0, col: 0 }, { row: 0, col: 1 }),
+        service.moveBall(
+          'g1',
+          'user-1',
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+        ),
       ).rejects.toThrow(WsException);
     });
 
@@ -433,17 +477,31 @@ describe('Line98Service', () => {
       mockGameModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
-      await expect(service.getHint('nonexistent', 'u1')).rejects.toThrow(WsException);
+      await expect(service.getHint('nonexistent', 'u1')).rejects.toThrow(
+        WsException,
+      );
 
       // Unauthorized
-      const game1 = new mockGameModel({ gameId: 'g1', userId: 'owner', status: 'playing', board: [] });
+      const game1 = new mockGameModel({
+        gameId: 'g1',
+        userId: 'owner',
+        status: 'playing',
+        board: [],
+      });
       mockGameModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(game1),
       });
-      await expect(service.getHint('g1', 'intruder')).rejects.toThrow(WsException);
+      await expect(service.getHint('g1', 'intruder')).rejects.toThrow(
+        WsException,
+      );
 
       // Finished game
-      const game2 = new mockGameModel({ gameId: 'g1', userId: 'u1', status: 'gameover', board: [] });
+      const game2 = new mockGameModel({
+        gameId: 'g1',
+        userId: 'u1',
+        status: 'gameover',
+        board: [],
+      });
       mockGameModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(game2),
       });
@@ -451,7 +509,12 @@ describe('Line98Service', () => {
 
       // No balls on board
       const emptyBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
-      const game3 = new mockGameModel({ gameId: 'g1', userId: 'u1', status: 'playing', board: emptyBoard });
+      const game3 = new mockGameModel({
+        gameId: 'g1',
+        userId: 'u1',
+        status: 'playing',
+        board: emptyBoard,
+      });
       mockGameModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(game3),
       });
@@ -460,7 +523,12 @@ describe('Line98Service', () => {
       // All balls completely trapped without any valid move
       const trappedBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
       trappedBoard[0][0] = 1;
-      const game4 = new mockGameModel({ gameId: 'g1', userId: 'u1', status: 'playing', board: trappedBoard });
+      const game4 = new mockGameModel({
+        gameId: 'g1',
+        userId: 'u1',
+        status: 'playing',
+        board: trappedBoard,
+      });
       mockGameModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(game4),
       });
@@ -472,7 +540,12 @@ describe('Line98Service', () => {
     it('13. should handle lean() query branch when retrieving game for hint', async () => {
       const board = Array.from({ length: 9 }, () => Array(9).fill(0));
       board[0][0] = 1;
-      const gameData = { gameId: 'lean-game', userId: 'u1', status: 'playing', board };
+      const gameData = {
+        gameId: 'lean-game',
+        userId: 'u1',
+        status: 'playing',
+        board,
+      };
 
       mockGameModel.findOne.mockReturnValue({
         lean: jest.fn().mockReturnValue({
@@ -486,4 +559,3 @@ describe('Line98Service', () => {
     });
   });
 });
-

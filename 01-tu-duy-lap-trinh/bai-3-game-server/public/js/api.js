@@ -1,28 +1,24 @@
-// API client and session storage helpers
+// API client and local storage helpers
 const API_BASE = '/api/v1';
 
 function getToken() {
-  return sessionStorage.getItem('game_jwt_token') || localStorage.getItem('game_jwt_token');
+  return localStorage.getItem('game_jwt_token');
 }
 
 function setToken(token) {
-  sessionStorage.setItem('game_jwt_token', token);
   localStorage.setItem('game_jwt_token', token);
 }
 
 function getUser() {
-  const user = sessionStorage.getItem('game_user_info') || localStorage.getItem('game_user_info');
+  const user = localStorage.getItem('game_user_info');
   return user ? JSON.parse(user) : null;
 }
 
 function setUser(user) {
-  sessionStorage.setItem('game_user_info', JSON.stringify(user));
   localStorage.setItem('game_user_info', JSON.stringify(user));
 }
 
 function removeToken() {
-  sessionStorage.removeItem('game_jwt_token');
-  sessionStorage.removeItem('game_user_info');
   localStorage.removeItem('game_jwt_token');
   localStorage.removeItem('game_user_info');
 }

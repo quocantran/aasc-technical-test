@@ -1,8 +1,4 @@
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-} from '@nestjs/common';
+import { PipeTransform, Injectable, ArgumentMetadata } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { WsException } from '@nestjs/websockets';
@@ -55,8 +51,9 @@ export class WsValidationPipe implements PipeTransform {
     return object;
   }
 
-  private toValidate(metatype: Function): boolean {
-    const types: Function[] = [String, Boolean, Number, Array, Object];
+  private toValidate(metatype?: any): boolean {
+    if (!metatype) return false;
+    const types: any[] = [String, Boolean, Number, Array, Object];
     return !types.includes(metatype) && metatype.name !== 'Socket';
   }
 }

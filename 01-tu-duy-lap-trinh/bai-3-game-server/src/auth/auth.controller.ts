@@ -38,8 +38,14 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng nhập và nhận JWT token' })
-  @ApiResponse({ status: 200, description: 'Đăng nhập thành công, trả về JWT access token' })
-  @ApiResponse({ status: 401, description: 'Tên tài khoản hoặc mật khẩu không chính xác' })
+  @ApiResponse({
+    status: 200,
+    description: 'Đăng nhập thành công, trả về JWT access token',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Tên tài khoản hoặc mật khẩu không chính xác',
+  })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
@@ -49,7 +55,10 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Lấy thông tin tài khoản người dùng hiện tại' })
   @ApiResponse({ status: 200, description: 'Thông tin tài khoản' })
-  @ApiResponse({ status: 401, description: 'Chưa đăng nhập hoặc token không hợp lệ' })
+  @ApiResponse({
+    status: 401,
+    description: 'Chưa đăng nhập hoặc token không hợp lệ',
+  })
   async getProfile(@Request() req: any) {
     return this.authService.getProfile(req.user.userId);
   }
@@ -60,7 +69,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Cập nhật hồ sơ (email và biệt danh)' })
   @ApiResponse({ status: 200, description: 'Cập nhật hồ sơ thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu cập nhật không hợp lệ' })
-  @ApiResponse({ status: 401, description: 'Chưa đăng nhập hoặc token không hợp lệ' })
+  @ApiResponse({
+    status: 401,
+    description: 'Chưa đăng nhập hoặc token không hợp lệ',
+  })
   async updateProfile(@Request() req: any, @Body() dto: UpdateProfileDto) {
     return this.authService.updateProfile(req.user.userId, dto);
   }

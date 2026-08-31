@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
-import { ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { User } from './schemas/user.schema';
@@ -206,7 +210,9 @@ describe('AuthService', () => {
         }),
       });
 
-      await expect(service.getProfile('non-existent-id')).rejects.toThrow(NotFoundException);
+      await expect(service.getProfile('non-existent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('8. should update profile fields (both email and nickname)', async () => {

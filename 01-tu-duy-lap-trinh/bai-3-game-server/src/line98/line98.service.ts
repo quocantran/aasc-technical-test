@@ -3,10 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { WsException } from '@nestjs/websockets';
-import {
-  Line98Game,
-  Line98GameDocument,
-} from './schemas/line98-game.schema';
+import { Line98Game, Line98GameDocument } from './schemas/line98-game.schema';
 
 export interface Position {
   row: number;
@@ -23,7 +20,7 @@ export class Line98Service {
   constructor(
     @InjectModel(Line98Game.name)
     private readonly gameModel: Model<Line98GameDocument>,
-  ) { }
+  ) {}
 
   // Generate random ball color (1 to COLOR_COUNT)
   private getRandomColor(): number {
@@ -50,8 +47,9 @@ export class Line98Service {
 
   // Create a new Line 98 game session
   async createGame(userId: string): Promise<Line98Game> {
-    const board: number[][] = Array.from({ length: Line98Service.GRID_SIZE }, () =>
-      Array(Line98Service.GRID_SIZE).fill(0),
+    const board: number[][] = Array.from(
+      { length: Line98Service.GRID_SIZE },
+      () => Array(Line98Service.GRID_SIZE).fill(0),
     );
 
     // Initial 3 balls
@@ -117,7 +115,8 @@ export class Line98Service {
       const cc = currIndex % N;
 
       // Check 4 adjacent directions: Up, Down, Left, Right
-      if (cr > 0) { // Up
+      if (cr > 0) {
+        // Up
         const ni = (cr - 1) * N + cc;
         if (!visited[ni] && board[cr - 1][cc] === 0) {
           visited[ni] = 1;
@@ -125,7 +124,8 @@ export class Line98Service {
           queue[tail++] = ni;
         }
       }
-      if (cr < N - 1) { // Down
+      if (cr < N - 1) {
+        // Down
         const ni = (cr + 1) * N + cc;
         if (!visited[ni] && board[cr + 1][cc] === 0) {
           visited[ni] = 1;
@@ -133,7 +133,8 @@ export class Line98Service {
           queue[tail++] = ni;
         }
       }
-      if (cc > 0) { // Left
+      if (cc > 0) {
+        // Left
         const ni = cr * N + (cc - 1);
         if (!visited[ni] && board[cr][cc - 1] === 0) {
           visited[ni] = 1;
@@ -141,7 +142,8 @@ export class Line98Service {
           queue[tail++] = ni;
         }
       }
-      if (cc < N - 1) { // Right
+      if (cc < N - 1) {
+        // Right
         const ni = cr * N + (cc + 1);
         if (!visited[ni] && board[cr][cc + 1] === 0) {
           visited[ni] = 1;
@@ -172,9 +174,9 @@ export class Line98Service {
     const toClear = new Set<string>();
 
     const directions = [
-      { dr: 0, dc: 1 },  // Horizontal
-      { dr: 1, dc: 0 },  // Vertical
-      { dr: 1, dc: 1 },  // Diagonal ↘
+      { dr: 0, dc: 1 }, // Horizontal
+      { dr: 1, dc: 0 }, // Vertical
+      { dr: 1, dc: 1 }, // Diagonal ↘
       { dr: 1, dc: -1 }, // Diagonal ↗
     ];
 
@@ -284,12 +286,7 @@ export class Line98Service {
   }
 
   // Execute a ball move and handle line clears
-  async moveBall(
-    gameId: string,
-    userId: string,
-    from: Position,
-    to: Position,
-  ) {
+  async moveBall(gameId: string, userId: string, from: Position, to: Position) {
     const game = await this.gameModel.findOne({ gameId }).exec();
     if (!game) {
       throw new WsException('Không tìm thấy ván chơi');
@@ -326,7 +323,7 @@ export class Line98Service {
     let spawnedBalls: Array<{ row: number; col: number; color: number }> = [];
     let nextBalls = game.nextBalls;
     let status: 'playing' | 'gameover' = 'playing';
-    let allClearedCells = [...moveLineResult.clearedCells];
+    const allClearedCells = [...moveLineResult.clearedCells];
 
     if (moveLineResult.clearedCells.length > 0) {
       // Line formed! Score points, DO NOT spawn new balls
@@ -364,11 +361,15 @@ export class Line98Service {
   }
 
   // Suggest a valid move hint
-  async getHint(gameId: string, userId: string): Promise<{ from: Position; to: Position }> {
+  async getHint(
+    gameId: string,
+    userId: string,
+  ): Promise<{ from: Position; to: Position }> {
     const query = this.gameModel.findOne({ gameId });
-    const game = typeof (query as any).lean === 'function'
-      ? await (query as any).lean().exec()
-      : await query.exec();
+    const game =
+      typeof (query as any).lean === 'function'
+        ? await (query as any).lean().exec()
+        : await query.exec();
     if (!game) {
       throw new WsException('Không tìm thấy ván chơi');
     }

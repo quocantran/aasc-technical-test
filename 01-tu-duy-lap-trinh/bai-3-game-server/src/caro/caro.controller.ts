@@ -20,7 +20,10 @@ export class CaroController {
   @ApiOperation({ summary: 'Lấy lịch sử đấu Cờ Caro của người dùng' })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiResponse({ status: 200, description: 'Danh sách các ván đấu gần đây' })
-  @ApiResponse({ status: 401, description: 'Chưa đăng nhập hoặc token không hợp lệ' })
+  @ApiResponse({
+    status: 401,
+    description: 'Chưa đăng nhập hoặc token không hợp lệ',
+  })
   async getHistory(@Request() req: any, @Query('limit') limit?: number) {
     const parsedLimit = limit ? Number(limit) : 20;
     return this.caroService.getMatchHistory(req.user.userId, parsedLimit);

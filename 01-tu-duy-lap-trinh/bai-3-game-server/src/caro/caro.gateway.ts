@@ -45,19 +45,18 @@ export class CaroGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket) {
     const token =
-      client.handshake.auth?.token ||
-      client.handshake.headers?.authorization;
+      client.handshake.auth?.token || client.handshake.headers?.authorization;
 
     if (!token) {
-      this.logger.warn(`[Caro] Client ${client.id} missing auth token, disconnecting`);
+      this.logger.warn(
+        `[Caro] Client ${client.id} missing auth token, disconnecting`,
+      );
       client.disconnect();
       return;
     }
 
     try {
-      const cleanToken = token.startsWith('Bearer ')
-        ? token.slice(7)
-        : token;
+      const cleanToken = token.startsWith('Bearer ') ? token.slice(7) : token;
 
       const payload = this.jwtService.verify(cleanToken);
       const userData = {
@@ -74,9 +73,13 @@ export class CaroGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       this.userSockets.get(userData.userId)!.add(client.id);
 
-      this.logger.log(`[Caro] User ${payload.username} (${client.id}) connected`);
+      this.logger.log(
+        `[Caro] User ${payload.username} (${client.id}) connected`,
+      );
     } catch (err: any) {
-      this.logger.warn(`[Caro] Client ${client.id} invalid token: ${err.message}`);
+      this.logger.warn(
+        `[Caro] Client ${client.id} invalid token: ${err.message}`,
+      );
       client.disconnect();
     }
   }
@@ -86,7 +89,9 @@ export class CaroGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.clientMap.delete(client.id);
 
     if (clientInfo) {
-      this.logger.log(`[Caro] User ${clientInfo.username} (${client.id}) disconnected`);
+      this.logger.log(
+        `[Caro] User ${clientInfo.username} (${client.id}) disconnected`,
+      );
 
       const sockets = this.userSockets.get(clientInfo.userId);
       if (sockets) {
@@ -99,7 +104,9 @@ export class CaroGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // ONLY award disconnect victory if the user has NO remaining active sockets
       const remainingSockets = this.userSockets.get(clientInfo.userId);
       if (!remainingSockets || remainingSockets.size === 0) {
-        const result = await this.caroService.handleDisconnect(clientInfo.userId);
+        const result = await this.caroService.handleDisconnect(
+          clientInfo.userId,
+        );
         if (result && result.game) {
           const roomName = `game:${result.game.gameId}`;
           this.server.to(roomName).emit('opponentDisconnected', {
@@ -130,7 +137,10 @@ export class CaroGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return !!sockets && sockets.size > 0;
       };
 
-      const { game, isNew } = await this.caroService.findOrCreateMatch(user, isOnline);
+      const { game, isNew } = await this.caroService.findOrCreateMatch(
+        user,
+        isOnline,
+      );
       const roomName = `game:${game.gameId}`;
 
       await client.join(roomName);

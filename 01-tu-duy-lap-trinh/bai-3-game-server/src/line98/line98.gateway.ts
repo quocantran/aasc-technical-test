@@ -37,28 +37,31 @@ export class Line98Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket) {
     const token =
-      client.handshake.auth?.token ||
-      client.handshake.headers?.authorization;
+      client.handshake.auth?.token || client.handshake.headers?.authorization;
 
     if (!token) {
-      this.logger.warn(`[Line98] Client ${client.id} missing auth token, disconnecting`);
+      this.logger.warn(
+        `[Line98] Client ${client.id} missing auth token, disconnecting`,
+      );
       client.disconnect();
       return;
     }
 
     try {
-      const cleanToken = token.startsWith('Bearer ')
-        ? token.slice(7)
-        : token;
+      const cleanToken = token.startsWith('Bearer ') ? token.slice(7) : token;
 
       const payload = this.jwtService.verify(cleanToken);
       client.data.user = {
         userId: payload.sub,
         username: payload.username,
       };
-      this.logger.log(`[Line98] User ${payload.username} (${client.id}) connected`);
+      this.logger.log(
+        `[Line98] User ${payload.username} (${client.id}) connected`,
+      );
     } catch (err: any) {
-      this.logger.warn(`[Line98] Client ${client.id} invalid token: ${err.message}`);
+      this.logger.warn(
+        `[Line98] Client ${client.id} invalid token: ${err.message}`,
+      );
       client.disconnect();
     }
   }

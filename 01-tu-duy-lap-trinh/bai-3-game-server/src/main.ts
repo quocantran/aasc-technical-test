@@ -13,7 +13,18 @@ async function bootstrap() {
 
   // Set global API prefix for REST versioning
   app.setGlobalPrefix('api/v1', {
-    exclude: ['docs', 'docs/(.*)', '', 'index.html', 'login.html', 'profile.html', 'line98.html', 'caro.html', 'css/(.*)', 'js/(.*)'],
+    exclude: [
+      'docs',
+      'docs/(.*)',
+      '',
+      'index.html',
+      'login.html',
+      'profile.html',
+      'line98.html',
+      'caro.html',
+      'css/(.*)',
+      'js/(.*)',
+    ],
   });
 
   // Global HTTP validation pipe

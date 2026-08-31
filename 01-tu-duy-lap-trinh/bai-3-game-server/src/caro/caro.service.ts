@@ -92,8 +92,9 @@ export class CaroService {
     }
 
     // 3. Create a new waiting room
-    const board: number[][] = Array.from({ length: CaroService.GRID_SIZE }, () =>
-      Array(CaroService.GRID_SIZE).fill(0),
+    const board: number[][] = Array.from(
+      { length: CaroService.GRID_SIZE },
+      () => Array(CaroService.GRID_SIZE).fill(0),
     );
 
     const gameId = uuidv4();
@@ -136,9 +137,9 @@ export class CaroService {
     if (symbol === 0) return { won: false, winningLine: [] };
 
     const directions = [
-      { dr: 0, dc: 1 },  // Horizontal
-      { dr: 1, dc: 0 },  // Vertical
-      { dr: 1, dc: 1 },  // Diagonal ↘
+      { dr: 0, dc: 1 }, // Horizontal
+      { dr: 1, dc: 0 }, // Vertical
+      { dr: 1, dc: 1 }, // Diagonal ↘
       { dr: 1, dc: -1 }, // Diagonal ↗
     ];
 
@@ -214,7 +215,9 @@ export class CaroService {
       throw new WsException('Không tìm thấy phòng chơi');
     }
     if (game.status !== 'playing') {
-      throw new WsException(`Trận đấu không hoạt động (trạng thái: ${game.status})`);
+      throw new WsException(
+        `Trận đấu không hoạt động (trạng thái: ${game.status})`,
+      );
     }
 
     let playerSymbol: 'X' | 'O';
@@ -299,7 +302,10 @@ export class CaroService {
     }
 
     // 4. Check draw (15x15 = 225 cells filled)
-    if (updatedGame.moveCount >= CaroService.GRID_SIZE * CaroService.GRID_SIZE) {
+    if (
+      updatedGame.moveCount >=
+      CaroService.GRID_SIZE * CaroService.GRID_SIZE
+    ) {
       await this.gameModel
         .updateOne(
           { gameId, status: 'playing' },
@@ -406,7 +412,7 @@ export class CaroService {
       });
 
       await history.save();
-    } catch (err) {
+    } catch {
       // Ignore duplicate key if already saved
     }
   }

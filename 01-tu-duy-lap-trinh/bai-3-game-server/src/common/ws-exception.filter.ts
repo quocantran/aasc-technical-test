@@ -12,8 +12,8 @@ export class AllWsExceptionsFilter extends BaseWsExceptionFilter {
       exception instanceof WsException
         ? exception.getError()
         : exception instanceof Error
-        ? exception.message
-        : 'Internal WebSocket error';
+          ? exception.message
+          : 'Internal WebSocket error';
 
     const message =
       typeof errorData === 'object' && errorData !== null
