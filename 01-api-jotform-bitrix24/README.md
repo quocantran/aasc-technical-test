@@ -67,23 +67,23 @@ sequenceDiagram
 ### A. Thiết lập tài khoản Jotform và lấy API Key
 1. **Đăng ký / Đăng nhập**: Truy cập [Jotform](https://www.jotform.com/) theo tài khoản của bạn.
 2. **Tạo Form**:
-   - Tạo biểu mẫu với **3 trường bắt buộc**: **Họ và tên** (Full Name), **Số điện thoại** (Phone), **Email** (Email).
-   - Đặt thuộc tính `Required = Yes` cho cả 3 trường.
+   * Tạo biểu mẫu với **3 trường bắt buộc**: **Họ và tên** (Full Name), **Số điện thoại** (Phone), **Email** (Email).
+   * Đặt thuộc tính `Required = Yes` cho cả 3 trường.
 
-   ![Tạo biểu mẫu Jotform với 3 trường bắt buộc](assets/create-form.png)
+![Tạo biểu mẫu Jotform với 3 trường bắt buộc](./assets/create-form.png)
 
 3. **Lấy API Key**:
-   - Vào **Avatar góc phải** $\rightarrow$ **Settings** $\rightarrow$ chọn tab **API** (hoặc truy cập `https://www.jotform.com/myaccount/api`).
-   - Bấm **Create New Key** $\rightarrow$ Đặt tên và chọn quyền **Full Access** $\rightarrow$ Copy API Key để dán vào file `.env`.
+   * Vào **Avatar góc phải** $\rightarrow$ **Settings** $\rightarrow$ chọn tab **API** (hoặc truy cập `https://www.jotform.com/myaccount/api`).
+   * Bấm **Create New Key** $\rightarrow$ Đặt tên và chọn quyền **Full Access** $\rightarrow$ Copy API Key để dán vào file `.env`.
 
-   ![Tạo và quản lý API Key trên Jotform](assets/apikey-jotform.png)
+![Tạo và quản lý API Key trên Jotform](./assets/apikey-jotform.png)
 
 4. **Cài đặt Webhook cho Form**:
-   - Tại giao diện sửa Form $\rightarrow$ **Settings** $\rightarrow$ **Integrations** $\rightarrow$ tìm **Webhooks**.
-   - Dán URL Webhook của server: `https://<your-domain-or-ngrok>/webhook/jotform`.
-   - Bấm **Complete Integration**.
+   * Tại giao diện sửa Form $\rightarrow$ **Settings** $\rightarrow$ **Integrations** $\rightarrow$ tìm **Webhooks**.
+   * Dán URL Webhook của server: `https://<your-domain-or-ngrok>/webhook/jotform`.
+   * Bấm **Complete Integration**.
 
-   ![Cài đặt Webhook trên biểu mẫu Jotform](assets/webhook-jotform.png)
+![Cài đặt Webhook trên biểu mẫu Jotform](./assets/webhook-jotform.png)
 
 ---
 
@@ -91,7 +91,7 @@ sequenceDiagram
 1. Đăng nhập vào cổng Bitrix24 của bạn.
 2. Điều hướng tới: **Ứng dụng (Applications)** $\rightarrow$ **Tài nguyên cho nhà phát triển (Developer resources)** $\rightarrow$ **Khác (Other)** $\rightarrow$ Chọn **Webhook vào (Inbound webhook)**.
 
-   ![Tạo Webhook vào trên Bitrix24](assets/webhook-bitrix24.png)
+![Tạo Webhook vào trên Bitrix24](./assets/webhook-bitrix24.png)
 
 3. Tại mục **Các quyền truy cập (Permissions)**: Tích chọn quyền **`CRM`** (*Quản trị quan hệ khách hàng*).
 4. Bấm **Lưu (Save)**.
