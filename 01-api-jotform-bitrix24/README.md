@@ -75,7 +75,7 @@ sequenceDiagram
 
 3. **Lấy API Key**:
    * Vào **Avatar góc phải** $\rightarrow$ **Settings** $\rightarrow$ chọn tab **API** (hoặc truy cập `https://www.jotform.com/myaccount/api`).
-   * Bấm **Create New Key** $\rightarrow$ Đặt tên và chọn quyền **Full Access** $\rightarrow$ Copy API Key để dán vào file `.env`.
+   * Bấm **Create New Key** $\rightarrow$ Đặt tên và **bắt buộc chọn quyền: `Full Access`** *(Lưu ý: Không chọn Read Access vì Jotform sẽ chặn quyền truy cập endpoint `/submission/:id` gây ra lỗi 401 Unauthorized)* $\rightarrow$ Copy API Key để dán vào biến `JOTFORM_API_KEY` trong file `.env`.
 
 ![Tạo và quản lý API Key trên Jotform](./assets/apikey-jotform.png)
 
