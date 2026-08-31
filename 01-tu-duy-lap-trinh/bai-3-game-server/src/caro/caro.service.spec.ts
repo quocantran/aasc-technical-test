@@ -35,6 +35,7 @@ describe('CaroService', () => {
       this.winner = dto.winner || null;
       this.moveCount = dto.moveCount || 0;
       this.lastMove = dto.lastMove || null;
+      this.createdAt = dto.createdAt || new Date();
       this.save = jest.fn().mockResolvedValue(this);
       this.toObject = jest.fn().mockReturnValue({ ...this });
     }
@@ -51,12 +52,11 @@ describe('CaroService', () => {
 
     mockGameModel = mockGameConstructor;
 
-    function mockHistoryConstructor(this: any, dto: any) {
+    mockHistoryModel = jest.fn().mockImplementation(function (this: any, dto: any) {
       Object.assign(this, dto);
       this.save = jest.fn().mockResolvedValue(this);
-    }
-    mockHistoryConstructor.find = jest.fn();
-    mockHistoryModel = mockHistoryConstructor;
+    });
+    mockHistoryModel.find = jest.fn();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -128,14 +128,16 @@ describe('CaroService', () => {
       expect(result.winningLine.length).toBe(5);
     });
 
-    it('6. should return won: false if line is less than 5', () => {
+    it('6. should return won: false if line is less than 5 or empty cell or invalid board', () => {
       const board = Array.from({ length: 15 }, () => Array(15).fill(0));
       for (let c = 0; c < 4; c++) {
         board[0][c] = 1;
       }
 
-      const result = service.checkWinner(board, 0, 0);
-      expect(result.won).toBe(false);
+      expect(service.checkWinner(board, 0, 0).won).toBe(false);
+      expect(service.checkWinner(board, 5, 5).won).toBe(false);
+      expect(service.checkWinner(null as any, 0, 0).won).toBe(false);
+      expect(service.checkWinner([] as any, 10, 10).won).toBe(false);
     });
   });
 
@@ -154,6 +156,27 @@ describe('CaroService', () => {
       expect(isNew).toBe(true);
       expect(game.playerX.userId).toBe(playerA.userId);
       expect(game.status).toBe('waiting');
+    });
+
+    it('7b. should return existing waiting match if user already created one', async () => {
+      const existing = new mockGameModel({
+        gameId: 'existing-waiting-game',
+        playerX: playerA,
+        status: 'waiting',
+      });
+
+      mockGameModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      });
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(existing),
+      });
+
+      const { game, isNew } = await service.findOrCreateMatch(playerA);
+      expect(isNew).toBe(true);
+      expect(game.gameId).toBe('existing-waiting-game');
     });
 
     it('8. should pair player with existing online waiting match', async () => {
@@ -214,6 +237,32 @@ describe('CaroService', () => {
         { $set: { status: 'cancelled' } },
       );
     });
+
+    it('8c. should continue searching if findOneAndUpdate returns null on race condition', async () => {
+      const candidateGame = new mockGameModel({
+        gameId: 'match-race',
+        playerX: playerA,
+        status: 'waiting',
+      });
+
+      mockGameModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([candidateGame]),
+        }),
+      });
+
+      // findOneAndUpdate returns null (another player grabbed room)
+      mockGameModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      const { isNew } = await service.findOrCreateMatch(playerB);
+      expect(isNew).toBe(true);
+    });
   });
 
   describe('makeMove (Atomic Execution & Turn Management)', () => {
@@ -257,14 +306,97 @@ describe('CaroService', () => {
       expect(result.game.board[7][7]).toBe(1);
     });
 
-    it('10. should throw WsException if player moves out of turn', async () => {
+    it('9b. should allow player O to move when it is O turn', async () => {
       const board = Array.from({ length: 15 }, () => Array(15).fill(0));
+      board[7][7] = 1;
+
+      const gameInstance = new mockGameModel({
+        gameId: 'game-caro-o',
+        board,
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'O',
+        status: 'playing',
+      });
+
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(gameInstance),
+      });
+
+      const updatedBoard = Array.from({ length: 15 }, () => Array(15).fill(0));
+      updatedBoard[7][7] = 1;
+      updatedBoard[8][8] = 2;
+
+      const updatedGameInstance = new mockGameModel({
+        gameId: 'game-caro-o',
+        board: updatedBoard,
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'X',
+        status: 'playing',
+        moveCount: 2,
+        lastMove: { row: 8, col: 8, player: 'O' },
+      });
+
+      mockGameModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedGameInstance),
+      });
+
+      const result = await service.makeMove('game-caro-o', playerB.userId, 8, 8);
+      expect(result.isOver).toBe(false);
+      expect(result.game.currentTurn).toBe('X');
+    });
+
+    it('10. should throw WsException for out of bounds move coordinates', async () => {
+      await expect(service.makeMove('g1', 'u1', -1, 5)).rejects.toThrow(WsException);
+      await expect(service.makeMove('g1', 'u1', 15, 5)).rejects.toThrow(WsException);
+      await expect(service.makeMove('g1', 'u1', 5, -1)).rejects.toThrow(WsException);
+      await expect(service.makeMove('g1', 'u1', 5, 15)).rejects.toThrow(WsException);
+    });
+
+    it('10b. should throw WsException if game does not exist or is not playing', async () => {
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      await expect(service.makeMove('nonexistent', playerA.userId, 0, 0)).rejects.toThrow(
+        WsException,
+      );
+
+      const finishedGame = new mockGameModel({
+        gameId: 'finished-game',
+        status: 'finished',
+      });
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(finishedGame),
+      });
+      await expect(service.makeMove('finished-game', playerA.userId, 0, 0)).rejects.toThrow(
+        WsException,
+      );
+    });
+
+    it('10c. should throw WsException if user is not in the game', async () => {
+      const game = new mockGameModel({
+        gameId: 'game-1',
+        playerX: playerA,
+        playerO: playerB,
+        status: 'playing',
+        currentTurn: 'X',
+      });
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(game),
+      });
+      await expect(service.makeMove('game-1', 'stranger-id', 0, 0)).rejects.toThrow(WsException);
+    });
+
+    it('10d. should throw WsException if player moves out of turn or cell is already occupied', async () => {
+      const board = Array.from({ length: 15 }, () => Array(15).fill(0));
+      board[0][0] = 1;
       const gameInstance = new mockGameModel({
         gameId: 'game-caro-1',
         board,
         playerX: playerA,
         playerO: playerB,
-        currentTurn: 'X', // Player X's turn
+        currentTurn: 'X',
         status: 'playing',
       });
 
@@ -273,9 +405,37 @@ describe('CaroService', () => {
       });
 
       // Player B attempts to move out of turn
-      await expect(
-        service.makeMove('game-caro-1', playerB.userId, 0, 0),
-      ).rejects.toThrow(WsException);
+      await expect(service.makeMove('game-caro-1', playerB.userId, 1, 1)).rejects.toThrow(
+        WsException,
+      );
+
+      // Player A attempts to move on occupied cell
+      await expect(service.makeMove('game-caro-1', playerA.userId, 0, 0)).rejects.toThrow(
+        WsException,
+      );
+    });
+
+    it('10e. should throw WsException if atomic update fails due to race condition', async () => {
+      const gameInstance = new mockGameModel({
+        gameId: 'game-race',
+        board: Array.from({ length: 15 }, () => Array(15).fill(0)),
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'X',
+        status: 'playing',
+      });
+
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(gameInstance),
+      });
+
+      mockGameModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(service.makeMove('game-race', playerA.userId, 0, 0)).rejects.toThrow(
+        WsException,
+      );
     });
 
     it('11. should finish game and save history when 5 in a row is achieved', async () => {
@@ -284,10 +444,11 @@ describe('CaroService', () => {
         winningBoard[0][c] = 1;
       }
 
+      const playerXNoNick = { userId: 'u-x', username: 'XUser', nickname: '' };
       const gameInstance = new mockGameModel({
         gameId: 'game-caro-win',
         board: Array.from({ length: 15 }, () => Array(15).fill(0)),
-        playerX: playerA,
+        playerX: playerXNoNick,
         playerO: playerB,
         currentTurn: 'X',
         status: 'playing',
@@ -296,7 +457,7 @@ describe('CaroService', () => {
       const updatedWinningInstance = new mockGameModel({
         gameId: 'game-caro-win',
         board: winningBoard,
-        playerX: playerA,
+        playerX: playerXNoNick,
         playerO: playerB,
         currentTurn: 'O',
         status: 'playing',
@@ -316,13 +477,52 @@ describe('CaroService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await service.makeMove('game-caro-win', playerA.userId, 0, 4);
+      const result = await service.makeMove('game-caro-win', playerXNoNick.userId, 0, 4);
 
       expect(result.isOver).toBe(true);
-      expect(result.winner).toBe(playerA.userId);
+      expect(result.winner).toBe(playerXNoNick.userId);
+      expect(result.winnerName).toBe('XUser');
       expect(result.reason).toBe('win');
       expect(result.winningLine).toBeDefined();
       expect(result.winningLine!.length).toBeGreaterThanOrEqual(5);
+    });
+
+    it('11b. should detect draw when board is full (moveCount >= 225)', async () => {
+      const board = Array.from({ length: 15 }, () => Array(15).fill(0));
+      const gameInstance = new mockGameModel({
+        gameId: 'game-draw',
+        board,
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'X',
+        status: 'playing',
+      });
+
+      const updatedDrawInstance = new mockGameModel({
+        gameId: 'game-draw',
+        board,
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'O',
+        status: 'playing',
+        moveCount: 225,
+        lastMove: { row: 14, col: 14, player: 'X' },
+      });
+
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(gameInstance),
+      });
+
+      mockGameModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedDrawInstance),
+      });
+
+      const result = await service.makeMove('game-draw', playerA.userId, 14, 14);
+
+      expect(result.isOver).toBe(true);
+      expect(result.winner).toBe('draw');
+      expect(result.winnerName).toBe('Hòa');
+      expect(result.reason).toBe('draw');
     });
   });
 
@@ -350,9 +550,65 @@ describe('CaroService', () => {
       expect(result!.winnerId).toBe(playerB.userId);
       expect(result!.game!.status).toBe('finished');
     });
+
+    it('12b. should handle when player O disconnects and player X has no nickname', async () => {
+      const playerXNoNick = { userId: 'user-x-no-nick', username: 'JustX', nickname: '' };
+      const activeGame = new mockGameModel({
+        gameId: 'game-dc-2',
+        playerX: playerXNoNick,
+        playerO: playerB,
+        status: 'playing',
+      });
+
+      mockGameModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(activeGame),
+      });
+
+      // Player B disconnects
+      const result = await service.handleDisconnect(playerB.userId);
+
+      expect(result).not.toBeNull();
+      expect(result!.winnerId).toBe(playerXNoNick.userId);
+      expect(result!.winnerName).toBe('JustX');
+    });
+
+    it('12c. should return null if no active playing game exists for disconnected user', async () => {
+      mockGameModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      const result = await service.handleDisconnect('alone-user');
+      expect(result).toBeNull();
+    });
+
+    it('12d. should return null if game has no opponent', async () => {
+      const soloGame = new mockGameModel({
+        gameId: 'solo-game',
+        playerX: playerA,
+        playerO: null,
+        status: 'playing',
+      });
+
+      mockGameModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(soloGame),
+      });
+
+      const result = await service.handleDisconnect(playerA.userId);
+      expect(result).toBeNull();
+    });
   });
 
-  describe('cancelMatchmaking', () => {
+  describe('saveHistory, cancelMatchmaking, getMatchHistory, getGame', () => {
     it('13. should cancel waiting match search for user', async () => {
       mockGameModel.updateMany.mockReturnValue({
         exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
@@ -365,5 +621,122 @@ describe('CaroService', () => {
         { $set: { status: 'cancelled' } },
       );
     });
+
+    it('13b. should return false if no matches were cancelled', async () => {
+      mockGameModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
+      });
+
+      const cancelled = await service.cancelMatchmaking('nobody');
+      expect(cancelled).toBe(false);
+    });
+
+    it('14. should query match history for a user (with and without limit)', async () => {
+      const mockHistory = [{ gameId: 'g1', winner: playerA.userId }];
+      mockHistoryModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            lean: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(mockHistory),
+            }),
+          }),
+        }),
+      });
+
+      const history = await service.getMatchHistory(playerA.userId, 10);
+      expect(history).toEqual(mockHistory);
+
+      const defaultHistory = await service.getMatchHistory(playerA.userId);
+      expect(defaultHistory).toEqual(mockHistory);
+    });
+
+    it('15. should get game by gameId', async () => {
+      const mockGame = { gameId: 'game-find-1' };
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockGame),
+      });
+
+      const game = await service.getGame('game-find-1');
+      expect(game).toEqual(mockGame);
+    });
+
+    it('16. should save match history and handle duplicate/save errors gracefully', async () => {
+      const gameDoc = new mockGameModel({
+        gameId: 'saved-game-1',
+        playerX: playerA,
+        playerO: playerB,
+        moveCount: 10,
+        createdAt: new Date(Date.now() - 5000),
+      });
+
+      // Normal save
+      await (service as any).saveHistory(gameDoc, playerA.userId, 'AliceQueen', 'win');
+
+      // Save without createdAt (fallback branch)
+      const gameDocNoCreated = new mockGameModel({
+        gameId: 'saved-game-2',
+        playerX: playerA,
+        playerO: playerB,
+        moveCount: 5,
+      });
+      delete (gameDocNoCreated as any).createdAt;
+      await (service as any).saveHistory(gameDocNoCreated, playerA.userId, 'AliceQueen', 'win');
+
+      // Error save (catch block)
+      mockHistoryModel.mockImplementationOnce(function (this: any) {
+        this.save = jest.fn().mockRejectedValue(new Error('Duplicate error'));
+      });
+      await (service as any).saveHistory(gameDoc, playerA.userId, 'AliceQueen', 'win');
+    });
+
+    it('17. should trigger async catch blocks in makeMove and handleDisconnect when saveHistory fails', async () => {
+      // Mock saveHistory to throw
+      jest.spyOn(service as any, 'saveHistory').mockRejectedValue(new Error('Async save history failed'));
+
+      // Test makeMove winning async catch
+      const winningBoard = Array.from({ length: 15 }, () => Array(15).fill(0));
+      for (let c = 0; c < 5; c++) winningBoard[0][c] = 1;
+
+      const gameInstance = new mockGameModel({
+        gameId: 'game-catch-win',
+        board: Array.from({ length: 15 }, () => Array(15).fill(0)),
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'X',
+        status: 'playing',
+      });
+      const updatedWinningInstance = new mockGameModel({
+        gameId: 'game-catch-win',
+        board: winningBoard,
+        playerX: playerA,
+        playerO: playerB,
+        currentTurn: 'O',
+        status: 'playing',
+        moveCount: 9,
+        lastMove: { row: 0, col: 4, player: 'X' },
+      });
+
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(gameInstance),
+      });
+      mockGameModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedWinningInstance),
+      });
+
+      const moveRes = await service.makeMove('game-catch-win', playerA.userId, 0, 4);
+      expect(moveRes.isOver).toBe(true);
+
+      // Test handleDisconnect async catch
+      mockGameModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockRejectedValue(new Error('Update many failed')),
+      });
+      mockGameModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(gameInstance),
+      });
+
+      const dcRes = await service.handleDisconnect(playerA.userId);
+      expect(dcRes).not.toBeNull();
+    });
   });
 });
+

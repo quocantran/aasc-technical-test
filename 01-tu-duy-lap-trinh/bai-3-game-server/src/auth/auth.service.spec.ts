@@ -18,6 +18,7 @@ describe('AuthService', () => {
     email: 'test@example.com',
     nickname: 'ProGamer',
     createdAt: new Date('2026-08-28T00:00:00.000Z'),
+    updatedAt: new Date('2026-08-28T00:00:00.000Z'),
   };
 
   beforeEach(async () => {
@@ -28,6 +29,7 @@ describe('AuthService', () => {
       this.nickname = dto.nickname ?? dto.username;
       this.email = dto.email ?? '';
       this.createdAt = new Date('2026-08-28T00:00:00.000Z');
+      this.updatedAt = new Date('2026-08-28T00:00:00.000Z');
       this.save = jest.fn().mockResolvedValue(this);
     }
 
@@ -102,7 +104,7 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('4. should authenticate valid credentials and return JWT token', async () => {
+    it('4. should authenticate valid credentials and return JWT token with nickname', async () => {
       jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
 
       mockUserModel.findOne.mockReturnValue({
@@ -116,7 +118,28 @@ describe('AuthService', () => {
 
       expect(result.accessToken).toBe('mock.jwt.token');
       expect(result.user.username).toBe('testplayer');
+      expect(result.user.nickname).toBe('ProGamer');
       expect(mockJwtService.sign).toHaveBeenCalled();
+    });
+
+    it('4b. should fallback to username when nickname is empty in login', async () => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+
+      const userDocNoNickname = {
+        ...mockUserDoc,
+        nickname: '',
+      };
+
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(userDocNoNickname),
+      });
+
+      const result = await service.login({
+        username: 'testplayer',
+        password: 'password123',
+      });
+
+      expect(result.user.nickname).toBe('testplayer');
     });
 
     it('5. should throw UnauthorizedException on wrong password', async () => {
@@ -161,7 +184,32 @@ describe('AuthService', () => {
       expect(profile.nickname).toBe('ProGamer');
     });
 
-    it('8. should update profile fields', async () => {
+    it('7b. should return profile with username fallback when nickname is empty', async () => {
+      const docWithoutNickname = {
+        ...mockUserDoc,
+        nickname: '',
+      };
+      mockUserModel.findById.mockReturnValue({
+        lean: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(docWithoutNickname),
+        }),
+      });
+
+      const profile = await service.getProfile(mockUserDoc._id);
+      expect(profile.nickname).toBe('testplayer');
+    });
+
+    it('7c. should throw NotFoundException when getting non-existent profile', async () => {
+      mockUserModel.findById.mockReturnValue({
+        lean: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(null),
+        }),
+      });
+
+      await expect(service.getProfile('non-existent-id')).rejects.toThrow(NotFoundException);
+    });
+
+    it('8. should update profile fields (both email and nickname)', async () => {
       const updatedDoc = {
         ...mockUserDoc,
         nickname: 'SuperMaster',
@@ -181,6 +229,22 @@ describe('AuthService', () => {
 
       expect(result.nickname).toBe('SuperMaster');
       expect(result.email).toBe('newemail@example.com');
+    });
+
+    it('8b. should update profile with single field and handle empty nickname fallback', async () => {
+      const updatedDocNoNick = {
+        ...mockUserDoc,
+        nickname: '',
+      };
+
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        lean: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(updatedDocNoNick),
+        }),
+      });
+
+      const result = await service.updateProfile(mockUserDoc._id, {});
+      expect(result.nickname).toBe('testplayer');
     });
 
     it('9. should throw NotFoundException if updating non-existent user', async () => {

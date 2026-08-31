@@ -47,34 +47,35 @@ npm run start:prod
 
 | Lệnh npm | Chức năng |
 | :--- | :--- |
-| **`npm test`** | Chạy toàn bộ 34 Unit Tests |
-| **`npm run test:line98`** | Chạy riêng 11 Unit Tests của trò chơi Line 98 |
-| **`npm run test:caro`** | Chạy riêng 14 Unit Tests của trò chơi Cờ Caro |
-| **`npm run test:cov`** | Xuất bảng thống kê độ bao phủ mã nguồn (**Code Coverage**) |
+| **`npm test`** | Chạy toàn bộ 64 Unit Tests trên 3 Service |
+| **`npm run test:line98`** | Chạy riêng 21 Unit Tests của trò chơi Line 98 |
+| **`npm run test:caro`** | Chạy riêng 30 Unit Tests của trò chơi Cờ Caro |
+| **`npm run test:auth`** | Chạy riêng 13 Unit Tests của module Xác thực & Tài khoản |
+| **`npm run test:cov`** | Xuất bảng thống kê độ bao phủ mã nguồn (**Code Coverage 100% Lines, Statements, Branches**) |
 | **`npm run benchmark`** | Kiểm tra hiệu năng 10 người dùng chơi đồng thời trên WebSocket |
 
 ---
 
 ## 4. Kết quả Kiểm thử & Đo lường Hiệu năng
 
-### 4.1. Unit Test Trò chơi Line 98 (11/11 Tests Passed)
-Kiểm thử thuật toán tìm đường BFS, logic ăn hàng 5 bóng, tính điểm và gợi ý nước đi:
+### 4.1. Unit Test Trò chơi Line 98 (21/21 Tests Passed)
+Kiểm thử thuật toán tìm đường BFS, logic ăn hàng 5 bóng, tính điểm combo, xử lý game over và gợi ý nước đi:
 
-![Kết quả Unit Test Line 98](./assets/unit-test-line98.png)
-
----
-
-### 4.2. Unit Test Trò chơi Cờ Caro (14/14 Tests Passed)
-Kiểm thử ghép trận (matchmaking), xử lý phòng ma (ghost room), kiểm tra thắng 4 hướng và atomic update:
-
-![Kết quả Unit Test Cờ Caro](./assets/unit-test-caro.png)
+![Kết quả Unit Test Line 98](./assets/line98-test.png)
 
 ---
 
-### 4.3. Báo cáo Độ bao phủ mã nguồn (Code Coverage ~90%)
-Độ bao phủ tập trung vào 3 tầng Service logic nghiệp vụ chính của hệ thống:
+### 4.2. Unit Test Trò chơi Cờ Caro (30/30 Tests Passed)
+Kiểm thử ghép trận (matchmaking), xử lý phòng ma (ghost room), kiểm tra thắng 4 hướng, hòa cờ, xử lý ngắt kết nối và atomic update:
 
-![Báo cáo Code Coverage](./assets/coverage.png)
+![Kết quả Unit Test Cờ Caro](./assets/caro-test.png)
+
+---
+
+### 4.3. Báo cáo Độ bao phủ mã nguồn (Code Coverage 100% — 64/64 Tests Passed)
+Độ bao phủ đạt **100% Statements, 100% Branches, 100% Lines** trên toàn bộ 3 tầng Service logic nghiệp vụ:
+
+![Báo cáo Code Coverage](./assets/unit-test-coverage.png)
 
 ---
 
