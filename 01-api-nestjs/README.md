@@ -275,4 +275,4 @@ npm run test:cov
 ![Test PUT Contact](docs/images/postman/update.png)
 
 #### 5. Xóa Contact kèm Requisite theo ID (`DELETE /contacts/:id`)
-![Test DELETE Contact](docs/images/postman/delete.png)
+![Test DELETE Contact](docs/images/postman/delete-contact.png)
