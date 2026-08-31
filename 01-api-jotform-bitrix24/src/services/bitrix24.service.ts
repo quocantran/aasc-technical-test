@@ -6,6 +6,7 @@ import {
   ContactData,
 } from '../interfaces/contact.interface';
 import { logger } from '../utils/logger';
+import { maskContact, maskName } from '../utils/masker';
 
 export class Bitrix24Service {
   private client: AxiosInstance;
@@ -29,7 +30,7 @@ export class Bitrix24Service {
   // Create a new Contact record in Bitrix24 CRM via crm.contact.add REST method
   public async createContact(contact: ContactData): Promise<number> {
     const startTime = Date.now();
-    logger.info(`Initiating Bitrix24 CRM Contact creation for: "${contact.fullName}"`);
+    logger.info(`Initiating Bitrix24 CRM Contact creation for: "${maskName(contact.fullName)}"`);
 
     const payload: Bitrix24CreateContactPayload = {
       fields: {
@@ -66,7 +67,7 @@ export class Bitrix24Service {
 
       logger.info(
         `Successfully created Bitrix24 Contact (ID: ${contactId}) in ${duration}ms`,
-        { contactId, duration, contactName: contact.fullName }
+        { contactId, duration, contactName: maskName(contact.fullName) }
       );
 
       return contactId;
@@ -77,7 +78,7 @@ export class Bitrix24Service {
         error.message;
 
       logger.error(`Bitrix24 API Contact creation failed: ${errorDetail}`, {
-        contact,
+        contact: maskContact(contact),
         status: error.response?.status,
         stack: error.stack,
       });

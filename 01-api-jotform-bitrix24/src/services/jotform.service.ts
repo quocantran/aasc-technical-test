@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { config } from '../configs/env';
 import { ContactData, JotformSubmissionApiResponse } from '../interfaces/contact.interface';
 import { logger } from '../utils/logger';
+import { maskEmail, maskName, maskPhone } from '../utils/masker';
 
 export class JotformService {
   private client: AxiosInstance;
@@ -93,7 +94,7 @@ export class JotformService {
       }
 
       logger.info(
-        `Extracted data from Jotform API: Name="${fullName}", Phone="${phone}", Email="${email}"`
+        `Extracted data from Jotform API: Name="${maskName(fullName)}", Phone="${maskPhone(phone)}", Email="${maskEmail(email)}"`
       );
 
       return {
@@ -126,7 +127,8 @@ export class JotformService {
     // Parse rawRequest JSON if present
     if (body.rawRequest) {
       try {
-        const raw = typeof body.rawRequest === 'string' ? JSON.parse(body.rawRequest) : body.rawRequest;
+        const raw =
+          typeof body.rawRequest === 'string' ? JSON.parse(body.rawRequest) : body.rawRequest;
         for (const [key, val] of Object.entries(raw)) {
           const k = key.toLowerCase();
           if (k.includes('name') || k.includes('hova') || k.includes('fullname')) {
@@ -169,7 +171,9 @@ export class JotformService {
       }
     }
 
-    logger.info(`Fallback extracted data: Name="${fullName}", Phone="${phone}", Email="${email}"`);
+    logger.info(
+      `Fallback extracted data: Name="${maskName(fullName)}", Phone="${maskPhone(phone)}", Email="${maskEmail(email)}"`
+    );
 
     return { fullName, phone, email, submissionId, formId };
   }

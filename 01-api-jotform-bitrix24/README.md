@@ -13,7 +13,8 @@
 - **Runtime & Language**: Node.js (v18+) & TypeScript (v5.x)
 - **Web Framework**: Express.js
 - **Data Validation & Sanitization**: Zod
-- **Logging**: Winston Logger
+- **Logging & Data Privacy**: Winston Logger + Custom PII Masker (che giấu thông tin cá nhân)
+- **Security & Headers**: Helmet, CORS
 - **HTTP Client**: Axios
 - **Form Parsing**: Multer + Body-parser (hỗ trợ multipart/form-data, json, urlencoded)
 
@@ -201,6 +202,10 @@ npm test
    - Kiểm tra nghiêm ngặt 3 trường bắt buộc: `fullName` không được rỗng, `phone` được chuẩn hóa regex (lọc ký tự lạ, tối thiểu 5 số), `email` chuẩn RFC và chuyển thành chữ thường.
 4. **Cơ chế dự phòng (Fallback Parsing)**:
    - Nếu yêu cầu lấy dữ liệu từ Jotform REST API gặp sự cố (quá giới hạn rate limit hoặc gián đoạn mạng), hệ thống tự động kích hoạt bộ parser dự phòng để bóc tách trực tiếp từ payload webhook (`rawRequest`/`pretty`).
-5. **Logging & Phản hồi HTTP**:
-   - Mọi lỗi phát sinh đều được ghi nhận chi tiết kèm stack trace vào `logs/error.log`.
-   - Phản hồi mã HTTP phù hợp (200 khi thành công, 400 kèm message chi tiết khi dữ liệu không hợp lệ) giúp Jotform không gửi lặp lại webhook không cần thiết.
+5. **Phân Loại Mã Trạng Thái HTTP (HTTP Status Code Mapping)**:
+   - `200 OK`: Đồng bộ thành công dữ liệu sang Bitrix24 CRM.
+   - `400 Bad Request`: Webhook payload thiếu `submissionID` hoặc vi phạm schema định dạng Zod (lỗi từ phía client).
+   - `502 Bad Gateway`: Lỗi upstream khi kết nối hoặc gọi API bên thứ ba (Jotform REST API / Bitrix24 REST API bị timeout, network error hoặc trả về lỗi).
+   - `500 Internal Server Error`: Lỗi hệ thống nội bộ không xác định.
+
+---

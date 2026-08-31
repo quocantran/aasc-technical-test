@@ -25,7 +25,8 @@ export class IntegrationService {
     // Parse rawRequest if payload was sent as stringified multipart field
     if (body.rawRequest) {
       try {
-        const raw = typeof body.rawRequest === 'string' ? JSON.parse(body.rawRequest) : body.rawRequest;
+        const raw =
+          typeof body.rawRequest === 'string' ? JSON.parse(body.rawRequest) : body.rawRequest;
         if (raw.submissionID) return String(raw.submissionID);
         if (raw.submission_id) return String(raw.submission_id);
       } catch (err) {
@@ -42,7 +43,7 @@ export class IntegrationService {
     const submissionId = this.extractSubmissionId(webhookBody);
 
     if (!submissionId) {
-      logger.error('No submissionID found in incoming webhook payload', { webhookBody });
+      logger.error('No submissionID found in incoming webhook payload');
       throw new Error('Missing submissionID in webhook payload');
     }
 
@@ -53,7 +54,9 @@ export class IntegrationService {
     try {
       rawContact = await jotformService.getSubmission(submissionId);
     } catch (apiError: any) {
-      logger.warn(`Jotform API request failed (${apiError.message}), falling back to webhook payload parser`);
+      logger.warn(
+        `Jotform API request failed (${apiError.message}), falling back to webhook payload parser`
+      );
       rawContact = jotformService.extractFromWebhookPayload(webhookBody);
     }
 
