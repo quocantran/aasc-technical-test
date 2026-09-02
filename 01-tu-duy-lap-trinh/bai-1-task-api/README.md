@@ -110,11 +110,16 @@ npm run benchmark
 
 ## 6. Kiểm thử Tự động (Unit Tests)
 
-Bộ kiểm thử Jest bao phủ đầy đủ **11/11 kịch bản kiểm thử** cho `TaskService` (bao gồm kiểm thử phân trang mặc định và tùy biến limit/page):
+Bộ kiểm thử Jest bao phủ đầy đủ **14/14 kịch bản kiểm thử** cho `TaskService`, đạt tỷ lệ bao phủ tuyệt đối **100% Statements, 100% Branch, 100% Functions, 100% Lines**:
 
 ```bash
+# Chạy toàn bộ Unit Test
 npm test
+
+# Chạy kiểm thử kèm báo cáo độ phủ Coverage
+npm run test:cov
 ```
-### Kết quả chạy Unit Test thực tế:
-![Kết quả Unit Test](./assets/test.png)
+
+### Kết quả chạy Unit Test và Coverage thực tế:
+![Kết quả Unit Test](./assets/unit-test.png)
 
