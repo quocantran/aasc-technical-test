@@ -17,6 +17,7 @@ describe('TaskService', () => {
     description: 'Build RESTful API following MVC architecture',
     status: TaskStatus.TODO,
     createdAt: new Date('2026-08-27T00:00:00.000Z'),
+    updatedAt: new Date('2026-08-27T00:00:00.000Z'),
   };
 
   beforeEach(async () => {
@@ -27,16 +28,19 @@ describe('TaskService', () => {
       this.description = dto.description ?? '';
       this.status = dto.status ?? TaskStatus.TODO;
       this.createdAt = dto.createdAt ?? new Date('2026-08-27T00:00:00.000Z');
+      this.updatedAt = dto.updatedAt ?? new Date('2026-08-27T00:00:00.000Z');
       this.save = jest.fn().mockResolvedValue({
         id: this.id,
         title: this.title,
         description: this.description,
         status: this.status,
         createdAt: this.createdAt,
+        updatedAt: this.updatedAt,
       });
     }
 
     mockModelConstructor.find = jest.fn();
+    mockModelConstructor.countDocuments = jest.fn();
     mockModelConstructor.findOne = jest.fn();
     mockModelConstructor.findOneAndUpdate = jest.fn();
     mockModelConstructor.findOneAndDelete = jest.fn();
@@ -97,29 +101,68 @@ describe('TaskService', () => {
   });
 
   describe('findAll', () => {
-    // Test Case 4: Retrieve all tasks
-    it('4. should return array of tasks sorted by createdAt descending', async () => {
+    // Test Case 4: Retrieve paginated tasks with defaults
+    it('4. should return paginated tasks sorted by createdAt descending with default pagination', async () => {
       const mockTaskList = [mockTask, { ...mockTask, id: 'uuid-2', title: 'Task 2' }];
 
       mockTaskModel.find.mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue(mockTaskList),
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue(mockTaskList),
+              }),
+            }),
           }),
         }),
+      });
+      mockTaskModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(2),
       });
 
       const result = await service.findAll();
 
       expect(mockTaskModel.find).toHaveBeenCalled();
-      expect(result).toEqual(mockTaskList);
-      expect(result.length).toBe(2);
+      expect(mockTaskModel.countDocuments).toHaveBeenCalled();
+      expect(result.data).toEqual(mockTaskList);
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
+      expect(result.totalPages).toBe(1);
+    });
+
+    // Test Case 5: Retrieve paginated tasks with custom page and limit
+    it('5. should handle custom page and limit pagination options', async () => {
+      const mockTaskList = [mockTask];
+
+      mockTaskModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue(mockTaskList),
+              }),
+            }),
+          }),
+        }),
+      });
+      mockTaskModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(25),
+      });
+
+      const result = await service.findAll({ page: 2, limit: 10 });
+
+      expect(result.data).toEqual(mockTaskList);
+      expect(result.total).toBe(25);
+      expect(result.page).toBe(2);
+      expect(result.limit).toBe(10);
+      expect(result.totalPages).toBe(3);
     });
   });
 
   describe('findOne', () => {
-    // Test Case 5: Find task by UUID successfully
-    it('5. should return a task when valid UUID is provided', async () => {
+    // Test Case 6: Find task by UUID successfully
+    it('6. should return a task when valid UUID is provided', async () => {
       mockTaskModel.findOne.mockReturnValue({
         lean: jest.fn().mockReturnValue({
           exec: jest.fn().mockResolvedValue(mockTask),
@@ -132,8 +175,8 @@ describe('TaskService', () => {
       expect(result).toEqual(mockTask);
     });
 
-    // Test Case 6: Throw NotFoundException when UUID not found
-    it('6. should throw NotFoundException when task with UUID does not exist', async () => {
+    // Test Case 7: Throw NotFoundException when UUID not found
+    it('7. should throw NotFoundException when task with UUID does not exist', async () => {
       mockTaskModel.findOne.mockReturnValue({
         lean: jest.fn().mockReturnValue({
           exec: jest.fn().mockResolvedValue(null),
@@ -147,8 +190,8 @@ describe('TaskService', () => {
   });
 
   describe('update', () => {
-    // Test Case 7: Update task fields successfully
-    it('7. should update task title and status successfully', async () => {
+    // Test Case 8: Update task fields successfully
+    it('8. should update task title and status successfully', async () => {
       const updateDto: UpdateTaskDto = {
         title: 'Updated task title',
         status: TaskStatus.DONE,
@@ -173,8 +216,8 @@ describe('TaskService', () => {
       expect(result.status).toEqual(TaskStatus.DONE);
     });
 
-    // Test Case 8: Throw NotFoundException when updating non-existent task
-    it('8. should throw NotFoundException when updating non-existent task', async () => {
+    // Test Case 9: Throw NotFoundException when updating non-existent task
+    it('9. should throw NotFoundException when updating non-existent task', async () => {
       mockTaskModel.findOneAndUpdate.mockReturnValue({
         lean: jest.fn().mockReturnValue({
           exec: jest.fn().mockResolvedValue(null),
@@ -188,8 +231,8 @@ describe('TaskService', () => {
   });
 
   describe('remove', () => {
-    // Test Case 9: Delete task successfully
-    it('9. should delete a task and return success message with ID', async () => {
+    // Test Case 10: Delete task successfully
+    it('10. should delete a task and return success message with ID', async () => {
       mockTaskModel.findOneAndDelete.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockTask),
       });
@@ -200,13 +243,13 @@ describe('TaskService', () => {
         id: mockTask.id,
       });
       expect(result).toEqual({
-        message: `Task with ID ${mockTask.id} deleted successfully`,
+        message: 'Task deleted successfully',
         id: mockTask.id,
       });
     });
 
-    // Test Case 10: Throw NotFoundException when deleting non-existent task
-    it('10. should throw NotFoundException when deleting non-existent task', async () => {
+    // Test Case 11: Throw NotFoundException when deleting non-existent task
+    it('11. should throw NotFoundException when deleting non-existent task', async () => {
       mockTaskModel.findOneAndDelete.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });

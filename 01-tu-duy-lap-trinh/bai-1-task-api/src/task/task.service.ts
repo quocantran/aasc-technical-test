@@ -5,6 +5,8 @@ import { randomUUID } from 'node:crypto';
 import { Task, TaskDocument } from './task.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginatedTaskResponseDto } from './dto/paginated-task-response.dto';
 
 @Injectable()
 export class TaskService {
@@ -23,9 +25,30 @@ export class TaskService {
     return await newTask.save();
   }
 
-  // Retrieve all tasks sorted by createdAt descending
-  async findAll(): Promise<Task[]> {
-    return await this.taskModel.find().sort({ createdAt: -1 }).lean().exec();
+  // Retrieve paginated tasks sorted by createdAt descending
+  async findAll(query?: PaginationQueryDto): Promise<PaginatedTaskResponseDto> {
+    const page = Math.max(1, Number(query?.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query?.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.taskModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
+      this.taskModel.countDocuments().exec(),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   // Find a single task by UUID
@@ -63,7 +86,7 @@ export class TaskService {
     }
 
     return {
-      message: `Task with ID ${id} deleted successfully`,
+      message: 'Task deleted successfully',
       id,
     };
   }

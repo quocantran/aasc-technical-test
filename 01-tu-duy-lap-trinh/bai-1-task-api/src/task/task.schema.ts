@@ -6,7 +6,7 @@ import { TaskStatus } from './enums/task-status.enum';
 export type TaskDocument = HydratedDocument<Task>;
 
 @Schema({
-  timestamps: false,
+  timestamps: true,
   versionKey: false,
   toJSON: {
     transform: (_, ret) => {
@@ -50,11 +50,16 @@ export class Task {
   status: TaskStatus;
 
   @ApiProperty({
-    description: 'Creation timestamp',
+    description: 'Creation timestamp (automatically managed by Mongoose)',
     example: '2026-08-27T15:00:00.000Z',
   })
-  @Prop({ default: Date.now })
   createdAt: Date;
+
+  @ApiProperty({
+    description: 'Last update timestamp (automatically managed by Mongoose)',
+    example: '2026-08-27T15:30:00.000Z',
+  })
+  updatedAt: Date;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

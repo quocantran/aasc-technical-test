@@ -30,7 +30,8 @@ Chứa toàn bộ logic nghiệp vụ (business logic) và các thao tác tươn
 | `title` | `String` | Bắt buộc (Required), Cắt khoảng trắng (Trimmed) | Tiêu đề công việc |
 | `description` | `String` | Tùy chọn, Mặc định: `""`, Cắt khoảng trắng | Mô tả chi tiết công việc |
 | `status` | `Enum` | `"To Do"`, `"In Progress"`, `"Done"` | Trạng thái công việc (Mặc định: `"To Do"`) |
-| `createdAt` | `Date` | Mặc định: `Date.now` | Thời gian tạo bản ghi |
+| `createdAt` | `Date` | Tự động sinh bởi Mongoose (`timestamps: true`) | Thời gian tạo bản ghi |
+| `updatedAt` | `Date` | Tự động cập nhật bởi Mongoose (`timestamps: true`) | Thời gian cập nhật gần nhất |
 
 ---
 
@@ -38,14 +39,17 @@ Chứa toàn bộ logic nghiệp vụ (business logic) và các thao tác tươn
 
 - **Tiền tố API toàn cục (Global Prefix)**: `/api/v1`  
 - **Tài liệu giao diện Swagger (OpenAPI)**: `http://localhost:3000/docs`
+- **Validation**:
+  - Tầng DTO: `ValidationPipe` với `whitelist: true`, `forbidNonWhitelisted: true`, `transform: true`.
+  - Tầng Route Param: `ParseUUIDPipe({ version: '4' })` chặn các ID không hợp lệ ngay tại Gateway với mã `400 Bad Request`.
 
-| Phương thức | Đường dẫn (Endpoint) | Mô tả chức năng | Mã phản hồi |
-| :---: | :--- | :--- | :---: |
-| `POST` | `/api/v1/tasks` | Tạo mới một công việc | `201 Created` |
-| `GET` | `/api/v1/tasks` | Lấy danh sách tất cả công việc (sắp xếp giảm dần theo thời gian tạo) | `200 OK` |
-| `GET` | `/api/v1/tasks/:id` | Lấy chi tiết công việc theo ID (UUID) | `200 OK` / `404` |
-| `PATCH` | `/api/v1/tasks/:id` | Cập nhật thông tin công việc theo ID (UUID) | `200 OK` / `404` |
-| `DELETE` | `/api/v1/tasks/:id` | Xóa công việc theo ID (UUID) | `200 OK` / `404` |
+| Phương thức | Đường dẫn (Endpoint) | Tham số Query / Param | Mô tả chức năng | Mã phản hồi |
+| :---: | :--- | :--- | :--- | :---: |
+| `POST` | `/api/v1/tasks` | Body: `CreateTaskDto` | Tạo mới một công việc | `201 Created` / `400` |
+| `GET` | `/api/v1/tasks` | Query: `?page=1&limit=20` | Lấy danh sách công việc có phân trang (sắp xếp giảm dần theo `createdAt`) | `200 OK` |
+| `GET` | `/api/v1/tasks/:id` | Param: `:id` (UUID v4) | Lấy chi tiết công việc theo ID (UUID) | `200 OK` / `400` / `404` |
+| `PATCH` | `/api/v1/tasks/:id` | Param: `:id`, Body: `UpdateTaskDto` | Cập nhật thông tin công việc theo ID (UUID) | `200 OK` / `400` / `404` |
+| `DELETE` | `/api/v1/tasks/:id` | Param: `:id` (UUID v4) | Xóa công việc theo ID (UUID) | `200 OK` / `400` / `404` |
 
 ### Giao diện Tài liệu Swagger OpenAPI:
 ![Giao diện Swagger API](./assets/swagger.png)
@@ -106,7 +110,7 @@ npm run benchmark
 
 ## 6. Kiểm thử Tự động (Unit Tests)
 
-Bộ kiểm thử Jest bao phủ đầy đủ **10/10 kịch bản kiểm thử** cho `TaskService`:
+Bộ kiểm thử Jest bao phủ đầy đủ **11/11 kịch bản kiểm thử** cho `TaskService` (bao gồm kiểm thử phân trang mặc định và tùy biến limit/page):
 
 ```bash
 npm test

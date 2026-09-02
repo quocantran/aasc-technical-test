@@ -6,19 +6,24 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginatedTaskResponseDto } from './dto/paginated-task-response.dto';
 import { Task } from './task.schema';
 
 @ApiTags('Tasks')
@@ -41,14 +46,30 @@ export class TaskController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Retrieve all tasks' })
+  @ApiOperation({ summary: 'Retrieve paginated list of tasks' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page (default: 20, max: 100)',
+    example: 20,
+  })
   @ApiResponse({
     status: 200,
-    description: 'List of all tasks',
-    type: [Task],
+    description: 'Paginated list of tasks',
+    type: PaginatedTaskResponseDto,
   })
-  async findAll(): Promise<Task[]> {
-    return await this.taskService.findAll();
+  async findAll(
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedTaskResponseDto> {
+    return await this.taskService.findAll(query);
   }
 
   @Get(':id')
@@ -56,7 +77,7 @@ export class TaskController {
   @ApiOperation({ summary: 'Retrieve a single task by ID' })
   @ApiParam({
     name: 'id',
-    description: 'Task UUID identifier',
+    description: 'Task UUID identifier (Version 4)',
     example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   })
   @ApiResponse({
@@ -64,8 +85,14 @@ export class TaskController {
     description: 'Task details',
     type: Task,
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Parameter is not a valid UUID v4',
+  })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async findOne(@Param('id') id: string): Promise<Task> {
+  async findOne(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<Task> {
     return await this.taskService.findOne(id);
   }
 
@@ -74,7 +101,7 @@ export class TaskController {
   @ApiOperation({ summary: 'Update a task by ID (PATCH)' })
   @ApiParam({
     name: 'id',
-    description: 'Task UUID identifier',
+    description: 'Task UUID identifier (Version 4)',
     example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   })
   @ApiBody({ type: UpdateTaskDto })
@@ -83,10 +110,13 @@ export class TaskController {
     description: 'Task updated successfully',
     type: Task,
   })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid UUID v4 or invalid body input data',
+  })
   @ApiResponse({ status: 404, description: 'Task not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
     return await this.taskService.update(id, updateTaskDto);
@@ -97,7 +127,7 @@ export class TaskController {
   @ApiOperation({ summary: 'Delete a task by ID' })
   @ApiParam({
     name: 'id',
-    description: 'Task UUID identifier',
+    description: 'Task UUID identifier (Version 4)',
     example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   })
   @ApiResponse({
@@ -105,13 +135,19 @@ export class TaskController {
     description: 'Task deleted successfully',
     schema: {
       example: {
-        message: 'Task with ID a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11 deleted successfully',
+        message: 'Task deleted successfully',
         id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
       },
     },
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Parameter is not a valid UUID v4',
+  })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async remove(@Param('id') id: string): Promise<{ message: string; id: string }> {
+  async remove(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<{ message: string; id: string }> {
     return await this.taskService.remove(id);
   }
 }
