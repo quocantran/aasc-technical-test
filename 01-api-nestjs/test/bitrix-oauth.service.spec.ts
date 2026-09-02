@@ -11,7 +11,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Logger, UnauthorizedException } from '@nestjs/common';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Observable } from 'rxjs';
 import { BitrixOAuthService } from '../src/modules/bitrix-oauth/services/bitrix-oauth.service';
 import { BitrixTokenEntity } from '../src/modules/bitrix-oauth/entities/bitrix-token.entity';
 
@@ -179,6 +179,92 @@ describe('BitrixOAuthService', () => {
     await expect(service.refreshToken(token)).rejects.toThrow(
       UnauthorizedException,
     );
+  });
+
+  it('6b. refreshToken() - should coalesce 10 concurrent calls into a single OAuth HTTP request (Single-Flight Mutex with latency simulation)', async () => {
+    const currentToken: any = {
+      id: 1,
+      domain: 'b24-test.bitrix24.vn',
+      accessToken: 'old_access_token',
+      refreshToken: 'old_refresh_token',
+      expiresAt: Date.now() - 1000,
+    };
+
+    const oauthResponse = {
+      data: {
+        access_token: 'new_access_token_single_flight',
+        refresh_token: 'new_refresh_token_single_flight',
+        expires_in: 3600,
+        expires: Math.floor(Date.now() / 1000) + 3600,
+        domain: 'b24-test.bitrix24.vn',
+      },
+    };
+
+    // Deliberate 50ms latency simulation to guarantee requests overlap during in-flight network flight
+    mockHttpService.get.mockImplementation(
+      () =>
+        new Observable((subscriber) => {
+          setTimeout(() => {
+            subscriber.next(oauthResponse);
+            subscriber.complete();
+          }, 50);
+        }),
+    );
+    mockTokenRepo.findOne.mockResolvedValue(null);
+
+    // Trigger 10 concurrent refreshToken() calls in parallel
+    const concurrentCalls = Array.from({ length: 10 }, () =>
+      service.refreshToken(currentToken),
+    );
+    const results = await Promise.all(concurrentCalls);
+
+    // 1. Verify all 10 calls received the identical new token pair
+    expect(results).toHaveLength(10);
+    results.forEach((res) => {
+      expect(res.accessToken).toBe('new_access_token_single_flight');
+      expect(res.refreshToken).toBe('new_refresh_token_single_flight');
+    });
+
+    // 2. Assert HTTP request and database save were executed EXACTLY once
+    expect(mockHttpService.get).toHaveBeenCalledTimes(1);
+    expect(mockTokenRepo.save).toHaveBeenCalledTimes(1);
+
+    // 3. Assert lock is released
+    expect((service as any).refreshPromise).toBeNull();
+
+    // 4. Sequential 11th call after lock release with subsequent expired token triggers a new refresh cycle
+    const subsequentExpiredToken: any = {
+      id: 1,
+      domain: 'b24-test.bitrix24.vn',
+      accessToken: 'new_access_token_single_flight',
+      refreshToken: 'new_refresh_token_single_flight',
+      expiresAt: Date.now() - 1000,
+    };
+
+    const call11Result = await service.refreshToken(subsequentExpiredToken);
+    expect(call11Result.accessToken).toBe('new_access_token_single_flight');
+    expect(mockHttpService.get).toHaveBeenCalledTimes(2);
+    expect(mockTokenRepo.save).toHaveBeenCalledTimes(2);
+  });
+
+  it('6c. refreshToken() - should skip Bitrix OAuth HTTP call if SQLite already has fresh token (Double-Check optimization)', async () => {
+    const alreadyFreshToken: any = {
+      id: 1,
+      domain: 'b24-test.bitrix24.vn',
+      accessToken: 'freshly_renewed_token',
+      refreshToken: 'fresh_refresh_token',
+      expiresAt: Date.now() + 3000 * 1000, // Valid for 50 minutes
+    };
+
+    // Simulate another concurrent request has already written fresh token into SQLite
+    mockTokenRepo.find.mockResolvedValue([alreadyFreshToken]);
+    mockTokenRepo.findOne.mockResolvedValue(alreadyFreshToken);
+
+    const result = await service.refreshToken();
+
+    expect(result.accessToken).toBe('freshly_renewed_token');
+    // HTTP call should NOT be made
+    expect(mockHttpService.get).not.toHaveBeenCalled();
   });
 
   it('7. exchangeCodeForToken() - should exchange code for token successfully', async () => {

@@ -125,13 +125,48 @@ export class BitrixOAuthService {
     return Date.now() >= token.expiresAt - bufferTimeMs;
   }
 
+  // Single-Flight Mutex to coalesce concurrent refresh calls in the same instance
+  private refreshPromise: Promise<BitrixTokenEntity> | null = null;
+
   /**
-   * Renews access token using stored refresh token via configured OAuth server endpoint.
+   * Renews access token using Single-Flight Mutex to coalesce concurrent renewal requests.
    */
   async refreshToken(
     currentToken?: BitrixTokenEntity,
   ): Promise<BitrixTokenEntity> {
-    const token = currentToken || (await this.getLatestToken());
+    // 1. If a renewal operation is already in flight, coalesce and wait for the existing Promise
+    if (this.refreshPromise) {
+      this.logger.log(
+        '[OAuth] Token renewal already in flight. Coalescing concurrent request onto existing Promise...',
+      );
+      return this.refreshPromise;
+    }
+
+    // 2. Initiate single-flight execution and ensure lock is released in finally()
+    this.refreshPromise = this.executeTokenRefresh(currentToken).finally(() => {
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * Internal execution of the token refresh logic with double-checked DB verification.
+   */
+  private async executeTokenRefresh(
+    currentToken?: BitrixTokenEntity,
+  ): Promise<BitrixTokenEntity> {
+    const domain = currentToken?.domain;
+    // Double-check: verify if token was already refreshed by another concurrent request just before this execution
+    const latestToken = await this.getLatestToken(domain);
+    if (latestToken && !this.isTokenExpired(latestToken)) {
+      this.logger.log(
+        '[OAuth] Double-check passed: token in database was already renewed by another concurrent request. Skipping external renewal.',
+      );
+      return latestToken;
+    }
+
+    const token = currentToken || latestToken;
     if (!token || !token.refreshToken) {
       throw new UnauthorizedException(
         'No refresh_token found. Please reinstall the Local Application on Bitrix24.',

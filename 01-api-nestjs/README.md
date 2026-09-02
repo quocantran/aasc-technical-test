@@ -7,7 +7,7 @@
 ## 🌟 Tính Năng Nổi Bật
 
 1. **OAuth 2.0 & Token Lifecycle:** Nhận sự kiện cài đặt tại `/install`, lưu trữ Token an toàn vào SQLite qua TypeORM. Tự động kiểm tra thời hạn và làm mới Token (Reactive 401 Auto-Refresh & Retry).
-2. **Quản lý Contact & Requisites 3 Tầng Chuẩn Bitrix24:** 
+2. **Quản lý Contact & Requisites 3 Tầng Chuẩn Bitrix24:**
    ```mermaid
    graph LR
        A["Contact (ID)"] -->|"ENTITY_TYPE_ID = 3"| B["Requisite (ID)"]
@@ -22,17 +22,17 @@
 
 ## 🛠️ Công Nghệ Sử Dụng (Tech Stack) & Yêu Cầu Môi Trường
 
-| Thành Phần | Công Nghệ / Thư Viện | Phiên Bản | Ghi Chú |
-| :--- | :--- | :---: | :--- |
-| **Runtime** | **Node.js** | **v20.19+ / v22.12+** | Tối thiểu **v20.19+** hoặc **v22.12+** (hỗ trợ `require(esm)` cho NestJS 12); khuyến nghị **v22.22+** để tương thích tối đa Nest CLI & Jest ESM. |
-| **Framework** | **NestJS (Latest)** | **v12.0.1** | Kiến trúc module hóa Clean Architecture, Dependency Injection. |
-| **Language** | **TypeScript** | **v5.7.3** | Strict type-safety, Decorator metadata. |
-| **Database & ORM** | **TypeORM + SQLite** | **v0.3.20** | Lưu trữ Token OAuth gọn nhẹ, không cần cài đặt SQL Server ngoài. |
-| **HTTP Client** | **Axios + @nestjs/axios** | **v1.7.9 / v12.0.0** | Giao tiếp REST API & Batch JSON với Bitrix24. |
-| **Validation** | **class-validator / transformer** | **v0.14.1** | Xác thực DTO payload chặt chẽ. |
-| **Logging** | **Winston (nest-winston)** | **v3.17.0** | Ghi log hệ thống ra cả Console và file log xoay vòng. |
-| **Tài Liệu API** | **Swagger UI / OpenAPI** | **v12.0.1** | Tự động sinh tài liệu tương tác tại `/docs`. |
-| **Testing** | **Jest + @nestjs/testing** | **v29.7.0** | Unit Test. |
+| Thành Phần         | Công Nghệ / Thư Viện              |       Phiên Bản       | Ghi Chú                                                                                                                                          |
+| :----------------- | :-------------------------------- | :-------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime**        | **Node.js**                       | **v20.19+ / v22.12+** | Tối thiểu **v20.19+** hoặc **v22.12+** (hỗ trợ `require(esm)` cho NestJS 12); khuyến nghị **v22.22+** để tương thích tối đa Nest CLI & Jest ESM. |
+| **Framework**      | **NestJS (Latest)**               |      **v12.0.1**      | Kiến trúc module hóa Clean Architecture, Dependency Injection.                                                                                   |
+| **Language**       | **TypeScript**                    |      **v5.7.3**       | Strict type-safety, Decorator metadata.                                                                                                          |
+| **Database & ORM** | **TypeORM + SQLite**              |      **v0.3.20**      | Lưu trữ Token OAuth gọn nhẹ, không cần cài đặt SQL Server ngoài.                                                                                 |
+| **HTTP Client**    | **Axios + @nestjs/axios**         | **v1.7.9 / v12.0.0**  | Giao tiếp REST API & Batch JSON với Bitrix24.                                                                                                    |
+| **Validation**     | **class-validator / transformer** |      **v0.14.1**      | Xác thực DTO payload chặt chẽ.                                                                                                                   |
+| **Logging**        | **Winston (nest-winston)**        |      **v3.17.0**      | Ghi log hệ thống ra cả Console và file log xoay vòng.                                                                                            |
+| **Tài Liệu API**   | **Swagger UI / OpenAPI**          |      **v12.0.1**      | Tự động sinh tài liệu tương tác tại `/docs`.                                                                                                     |
+| **Testing**        | **Jest + @nestjs/testing**        |      **v29.7.0**      | Unit Test.                                                                                                                                       |
 
 ---
 
@@ -59,12 +59,15 @@
 ## 🚀 Hướng Dẫn Cài Đặt & Chạy Nhanh
 
 ### 1. Cài đặt dependencies
+
 ```bash
 npm install --legacy-peer-deps
 ```
 
 ### 2. Cấu hình file `.env`
+
 Tạo file `.env` từ `.env.example`:
+
 ```env
 PORT=3000
 API_KEY=aasc_technical_test_secret_key_2026
@@ -75,6 +78,7 @@ DATABASE_PATH=data/tokens.sqlite
 ```
 
 ### 3. Khởi chạy Server
+
 ```bash
 # Chế độ phát triển (Development):
 npm run start:dev
@@ -88,48 +92,53 @@ http://localhost:3000/docs
 ## 🌐 Hướng Dẫn Cấu Hình ngrok & Bitrix24 Local App
 
 ### 1. Cấu hình ngrok tạo Tunnel công khai
-* Nếu chưa cài đặt ngrok, truy cập trang chủ [https://ngrok.com/download](https://ngrok.com/download) để tải và cài đặt.
-* Mở terminal và khởi chạy lệnh tạo tunnel tới đúng port server backend đang chạy (mặc định là port `3000`):
+
+- Nếu chưa cài đặt ngrok, truy cập trang chủ [https://ngrok.com/download](https://ngrok.com/download) để tải và cài đặt.
+- Mở terminal và khởi chạy lệnh tạo tunnel tới đúng port server backend đang chạy (mặc định là port `3000`):
   ```bash
   ngrok http 3000
   ```
-* Sao chép đường dẫn **HTTPS** công khai do ngrok cung cấp (Ví dụ: `https://your-domain.ngrok-free.app`).
+- Sao chép đường dẫn **HTTPS** công khai do ngrok cung cấp (Ví dụ: `https://your-domain.ngrok-free.app`).
 
 ---
 
 ### 2. Cấu hình Local Application trên Bitrix24
 
 #### Bước 1: Điều hướng tới mục Tạo Ứng dụng cục bộ
-* Truy cập portal Bitrix24 $\rightarrow$ Menu bên trái chọn **Dành cho nhà phát triển (Developer resources)** $\rightarrow$ **Khác (Other)** $\rightarrow$ Chọn **Ứng dụng cục bộ (Local Application)**.
+
+- Truy cập portal Bitrix24 $\rightarrow$ Menu bên trái chọn **Dành cho nhà phát triển (Developer resources)** $\rightarrow$ **Khác (Other)** $\rightarrow$ Chọn **Ứng dụng cục bộ (Local Application)**.
 
 ![Truy cập Khác và chọn Ứng dụng cục bộ](docs/images/bitrix24/other.png)
 
 #### Bước 2: Điền thông tin tạo Ứng dụng cục bộ
-* Loại ứng dụng: Tích chọn **Chỉ kịch bản (Không có giao diện người dùng)** *(Server / Script only)*.
-* Điền đường dẫn webhook ngrok vào **cả 2 vị trí bắt buộc**:
-  * **Đường dẫn trình xử lý ban đầu (Handler URL):** `https://your-domain.ngrok-free.app/install`
-  * **Đường dẫn cài đặt (Installation URL):** `https://your-domain.ngrok-free.app/install`
-* **Phạm vi quyền truy cập (Scope):** Tích chọn **CRM (`crm`)**.
-* Bấm **Tạo (Create)**.
+
+- Loại ứng dụng: Tích chọn **Chỉ kịch bản (Không có giao diện người dùng)** _(Server / Script only)_.
+- Điền đường dẫn webhook ngrok vào **cả 2 vị trí bắt buộc**:
+  - **Đường dẫn trình xử lý ban đầu (Handler URL):** `https://your-domain.ngrok-free.app/install`
+  - **Đường dẫn cài đặt (Installation URL):** `https://your-domain.ngrok-free.app/install`
+- **Phạm vi quyền truy cập (Scope):** Tích chọn **CRM (`crm`)**.
+- Bấm **Tạo (Create)**.
 
 ![Cấu hình Ứng dụng cục bộ](docs/images/bitrix24/local-application.png)
 
 #### Bước 3: Lấy Mã ứng dụng (Client ID) & Khóa ứng dụng (Client Secret)
-* Sau khi lưu, truy cập tab **Tích hợp (Integrations)** trong mục Dành cho nhà phát triển.
-* Click vào biểu tượng **3 dấu gạch (menu tùy chọn)** của Ứng dụng cục bộ vừa tạo $\rightarrow$ Click **Sửa (Edit)**.
+
+- Sau khi lưu, truy cập tab **Tích hợp (Integrations)** trong mục Dành cho nhà phát triển.
+- Click vào biểu tượng **3 dấu gạch (menu tùy chọn)** của Ứng dụng cục bộ vừa tạo $\rightarrow$ Click **Sửa (Edit)**.
 
 ![Menu Tùy chọn Ứng dụng cục bộ](docs/images/bitrix24/integration.png)
 
-* Trong màn hình chỉnh sửa ứng dụng:
-  * Sao chép **Mã ứng dụng (Application ID)** $\rightarrow$ Dán vào biến `BITRIX24_CLIENT_ID` trong file `.env`.
-  * Sao chép **Khóa ứng dụng (Application Key)** $\rightarrow$ Dán vào biến `BITRIX24_CLIENT_SECRET` trong file `.env`.
-  * Click vào nút **CÀI ĐẶT LẠI (REINSTALL)** ở góc dưới cùng của màn hình cập nhật ứng dụng.
+- Trong màn hình chỉnh sửa ứng dụng:
+  - Sao chép **Mã ứng dụng (Application ID)** $\rightarrow$ Dán vào biến `BITRIX24_CLIENT_ID` trong file `.env`.
+  - Sao chép **Khóa ứng dụng (Application Key)** $\rightarrow$ Dán vào biến `BITRIX24_CLIENT_SECRET` trong file `.env`.
+  - Click vào nút **CÀI ĐẶT LẠI (REINSTALL)** ở góc dưới cùng của màn hình cập nhật ứng dụng.
 
 ![Xem Mã ứng dụng, Khóa ứng dụng và bấm Cài đặt lại](docs/images/bitrix24/update-application.png)
 
 #### Bước 4: Hoàn tất kích hoạt Token
-* Khi click nút **CÀI ĐẶT LẠI**, Bitrix24 sẽ lập tức gửi một POST request tới webhook `https://your-domain.ngrok-free.app/install`.
-* Backend NestJS tự động bắt sự kiện cài đặt, thực hiện security handshake (xác thực scope quyền CRM) và lưu cặp Token vào SQLite (`data/tokens.sqlite`).
+
+- Khi click nút **CÀI ĐẶT LẠI**, Bitrix24 sẽ lập tức gửi một POST request tới webhook `https://your-domain.ngrok-free.app/install`.
+- Backend NestJS tự động bắt sự kiện cài đặt, thực hiện security handshake (xác thực scope quyền CRM) và lưu cặp Token vào SQLite (`data/tokens.sqlite`).
 
 ---
 
@@ -137,20 +146,22 @@ http://localhost:3000/docs
 
 > 🔒 **Xác thực API Key:** Tất cả các endpoint `/contacts` đều yêu cầu header bảo mật `x-api-key`. Vui lòng thay thế giá trị mẫu `aasc_technical_test_secret_key_2026` trong các ví dụ bên dưới bằng giá trị `API_KEY` tương ứng trong file `.env` của bạn.
 
-| Method | Endpoint | Mô Tả | Authentication |
-| :--- | :--- | :--- | :---: |
-| `POST` | `/install` | Nhận sự kiện cài đặt OAuth từ Bitrix24 | Public |
-| `GET` | `/contacts` | Lấy danh sách Contact có phân trang (`?page=1&limit=20`) | `x-api-key` |
-| `POST` | `/contacts` | Thêm mới Contact kèm thông tin ngân hàng | `x-api-key` |
-| `GET` | `/contacts/:id` | Xem chi tiết 1 Contact theo ID | `x-api-key` |
-| `PUT` | `/contacts/:id` | Cập nhật Contact & thông tin ngân hàng | `x-api-key` |
-| `DELETE` | `/contacts/:id` | Xóa Contact kèm Requisite & Bank Detail liên kết | `x-api-key` |
-| `GET` | `/docs` | Giao diện tài liệu tương tác Swagger UI | Public |
+| Method   | Endpoint        | Mô Tả                                                    | Authentication |
+| :------- | :-------------- | :------------------------------------------------------- | :------------: |
+| `POST`   | `/install`      | Nhận sự kiện cài đặt OAuth từ Bitrix24                   |     Public     |
+| `GET`    | `/contacts`     | Lấy danh sách Contact có phân trang (`?page=1&limit=20`) |  `x-api-key`   |
+| `POST`   | `/contacts`     | Thêm mới Contact kèm thông tin ngân hàng                 |  `x-api-key`   |
+| `GET`    | `/contacts/:id` | Xem chi tiết 1 Contact theo ID                           |  `x-api-key`   |
+| `PUT`    | `/contacts/:id` | Cập nhật Contact & thông tin ngân hàng                   |  `x-api-key`   |
+| `DELETE` | `/contacts/:id` | Xóa Contact kèm Requisite & Bank Detail liên kết         |  `x-api-key`   |
+| `GET`    | `/docs`         | Giao diện tài liệu tương tác Swagger UI                  |     Public     |
 
 ### 💻 Hướng Dẫn Sử Dụng API Qua cURL (Đầy Đủ Các Endpoint):
-*(Lưu ý: Thay `aasc_technical_test_secret_key_2026` bằng giá trị `API_KEY` trong file `.env` và thay `142` bằng ID thực tế của Contact trên Bitrix24 portal của bạn)*
+
+_(Lưu ý: Thay `aasc_technical_test_secret_key_2026` bằng giá trị `API_KEY` trong file `.env` và thay `142` bằng ID thực tế của Contact trên Bitrix24 portal của bạn)_
 
 #### 1. Nhận sự kiện cài đặt OAuth (`POST /install`)
+
 ```bash
 curl -X POST "http://localhost:3000/install" \
      -H "Content-Type: application/json" \
@@ -167,12 +178,14 @@ curl -X POST "http://localhost:3000/install" \
 ```
 
 #### 2. Lấy danh sách Contact có phân trang (`GET /contacts`)
+
 ```bash
 curl -X GET "http://localhost:3000/contacts?page=1&limit=10" \
      -H "x-api-key: aasc_technical_test_secret_key_2026"
 ```
 
 #### 3. Thêm mới Contact kèm thông tin ngân hàng (`POST /contacts`)
+
 ```bash
 curl -X POST "http://localhost:3000/contacts" \
      -H "Content-Type: application/json" \
@@ -196,14 +209,18 @@ curl -X POST "http://localhost:3000/contacts" \
 ```
 
 #### 4. Xem chi tiết 1 Contact theo ID (`GET /contacts/:id`)
-*(Thay `142` bằng ID của Contact thật trên Bitrix24)*
+
+_(Thay `142` bằng ID của Contact thật trên Bitrix24)_
+
 ```bash
 curl -X GET "http://localhost:3000/contacts/142" \
      -H "x-api-key: aasc_technical_test_secret_key_2026"
 ```
 
 #### 5. Cập nhật thông tin Contact & ngân hàng (`PUT /contacts/:id`)
-*(Thay `142` bằng ID của Contact thật cần cập nhật. Nếu muốn gỡ bỏ hoàn toàn thông tin ngân hàng, truyền `"bankDetail": null`)*
+
+_(Thay `142` bằng ID của Contact thật cần cập nhật. Nếu muốn gỡ bỏ hoàn toàn thông tin ngân hàng, truyền `"bankDetail": null`)_
+
 ```bash
 curl -X PUT "http://localhost:3000/contacts/142" \
      -H "Content-Type: application/json" \
@@ -219,7 +236,9 @@ curl -X PUT "http://localhost:3000/contacts/142" \
 ```
 
 #### 6. Xóa Contact theo ID (`DELETE /contacts/:id`)
-*(Thay `142` bằng ID của Contact thật cần xóa)*
+
+_(Thay `142` bằng ID của Contact thật cần xóa)_
+
 ```bash
 curl -X DELETE "http://localhost:3000/contacts/142" \
      -H "x-api-key: aasc_technical_test_secret_key_2026"
@@ -229,25 +248,42 @@ curl -X DELETE "http://localhost:3000/contacts/142" \
 
 ## 🛡️ Các Lỗi Đã Xử Lý & Cách Kiểm Tra (Error Handling & Verification)
 
-| Tình Huống | Mã Lỗi | Cơ Chế Xử Lý | Cách Kiểm Tra / Test |
-| :--- | :---: | :--- | :--- |
-| **Token hết hạn (1 giờ)** | `401` | Tự động làm mới Access Token qua OAuth server, cập nhật SQLite và gửi lại request thành công cho người dùng. | Sửa thủ công trường `expires_at` trong SQLite về quá khứ $\rightarrow$ gọi API `/contacts`, quan sát console tự động refresh token thành công. |
-| **Truyền Token sai / giả tại `/install`** | `401` | `BitrixOAuthService` thực hiện Security Handshake (`app.info`) trực tiếp với Bitrix24 trước khi lưu. Nếu token không hợp lệ sẽ từ chối lưu vào DB. | Gửi `POST /install` với body `{"auth": {"access_token": "token_gia_123", ...}}` $\rightarrow$ nhận `401 Unauthorized` ("Xác thực Token với Bitrix24 thất bại"). |
-| **Thiếu / Sai API Key** | `401` | `ApiKeyGuard` chặn request từ cổng vào, trả về JSON chuẩn hóa. | Gửi request không kèm header `x-api-key` hoặc kèm key sai $\rightarrow$ nhận `401 Unauthorized`. |
-| **DTO không hợp lệ** | `400` | `ValidationPipe` chặn lỗi format Email, SĐT regex, thiếu tên bắt buộc. | Gửi request `POST /contacts` với body `{"name": "A", "email": "sai-format"}` $\rightarrow$ nhận `400 Bad Request`. |
-| **Không tìm thấy Contact** | `404` | Bắt lỗi và phản hồi `"Contact #... không tồn tại"`. | Gửi request `GET /contacts/9999999` $\rightarrow$ nhận `404 Not Found`. |
-| **Timeout API Bitrix24** | `504` | Timeout mặc định 10s, ghi log chi tiết vào file `logs/error.log`. | Ngắt kết nối mạng hoặc gọi tới portal không phản hồi quá 10s $\rightarrow$ nhận `504 Gateway Timeout`. |
+| Tình Huống                                    | Mã Lỗi | Cơ Chế Xử Lý                                                                                                                                                          | Cách Kiểm Tra / Test                                                                                                                                            |
+| :-------------------------------------------- | :----: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Token hết hạn (1 giờ)**                     | `401`  | Tự động làm mới Access Token qua OAuth server, cập nhật SQLite và gửi lại request thành công cho người dùng.                                                          | Sửa thủ công trường `expires_at` trong SQLite về quá khứ $\rightarrow$ gọi API `/contacts`, quan sát console tự động refresh token thành công.                  |
+| **Nhiều request đồng thời khi token hết hạn** | `400`  | Áp dụng **Single-Flight Mutex (Promise Lock)**: Gộp các luồng refresh đồng thời thành 1 request HTTP duy nhất, loại bỏ triệt để lỗi `invalid_grant` (Token Stampede). | Giả lập 10 calls `refreshToken()` đồng thời trong Unit Test $\rightarrow$ kiểm chứng Bitrix OAuth chỉ nhận đúng 1 HTTP request và giải phóng lock an toàn.      |
+| **Truyền Token sai / giả tại `/install`**     | `401`  | `BitrixOAuthService` thực hiện Security Handshake (`app.info`) trực tiếp với Bitrix24 trước khi lưu. Nếu token không hợp lệ sẽ từ chối lưu vào DB.                    | Gửi `POST /install` với body `{"auth": {"access_token": "token_gia_123", ...}}` $\rightarrow$ nhận `401 Unauthorized` ("Xác thực Token với Bitrix24 thất bại"). |
+| **Thiếu / Sai API Key**                       | `401`  | `ApiKeyGuard` chặn request từ cổng vào, trả về JSON chuẩn hóa.                                                                                                        | Gửi request không kèm header `x-api-key` hoặc kèm key sai $\rightarrow$ nhận `401 Unauthorized`.                                                                |
+| **DTO không hợp lệ**                          | `400`  | `ValidationPipe` chặn lỗi format Email, SĐT regex, thiếu tên bắt buộc.                                                                                                | Gửi request `POST /contacts` với body `{"name": "A", "email": "sai-format"}` $\rightarrow$ nhận `400 Bad Request`.                                              |
+| **Không tìm thấy Contact**                    | `404`  | Bắt lỗi và phản hồi `"Contact #... không tồn tại"`.                                                                                                                   | Gửi request `GET /contacts/9999999` $\rightarrow$ nhận `404 Not Found`.                                                                                         |
+| **Timeout API Bitrix24**                      | `504`  | Timeout mặc định 10s, ghi log chi tiết vào file `logs/error.log`.                                                                                                     | Ngắt kết nối mạng hoặc gọi tới portal không phản hồi quá 10s $\rightarrow$ nhận `504 Gateway Timeout`.                                                          |
+
+---
+
+### 🔒 Cơ Chế Single-Flight Mutex Chống Thundering Herd (Token Stampede)
+
+Trong kiến trúc OAuth 2.0 của Bitrix24, **Refresh Token Rotation (Single-Use Token)** được áp dụng nghiêm ngặt: mỗi khi một `refresh_token` được dùng, Bitrix24 sẽ cấp cặp token mới và **thu hồi ngay lập tức token cũ**.
+
+- **Vấn đề đặt ra (Thundering Herd):** Nếu Access Token hết hạn đúng lúc có nhiều requests đồng thời gửi đến server, tất cả các requests này sẽ cùng nhận `401` và cùng gửi `refresh_token` cũ lên Bitrix24. Request đầu tiên thành công, còn các requests tiếp theo sẽ bị Bitrix24 từ chối với lỗi `invalid_grant: Refresh token is invalid or expired`, gây lỗi dây chuyền và hỏng chuỗi token trong SQLite.
+- **Giải pháp Single-Flight Pattern:**
+  - Tại `BitrixOAuthService.refreshToken()`, hệ thống duy trì thuộc tính `private refreshPromise: Promise<BitrixTokenEntity> | null`.
+  - Khi có $N$ luồng refresh đồng thời trong cùng instance/process, request đầu tiên sẽ tạo Promise và phát lệnh gọi HTTP. Các request đến sau sẽ **không gọi thêm HTTP**, mà được gộp (coalesce) để chia sẻ chung kết quả của Promise đang chạy (`return this.refreshPromise`).
+  - Khối `.finally()` đảm bảo lock luôn được giải phóng về `null` kể cả khi có lỗi mạng hay ngoại lệ xảy ra.
+  - **Double-Checked DB Verification:** Trước khi phát lệnh gọi HTTP sang Bitrix24, hàm thực thi kiểm tra lại SQLite. Nếu token đã vừa được một request khác làm mới thành công và còn hạn, hệ thống trả về ngay lập tức mà không tiêu tốn thêm request mạng.
+- **Phạm vi kiến trúc:** Cơ chế Single-Flight Promise Lock đảm bảo an toàn tuyệt đối cho tất cả các luồng xử lý đồng thời trong cùng một Node.js process/instance. Khi mở rộng hệ thống theo chiều ngang (Horizontal Scaling đa instance phía sau Load Balancer), mô hình có thể dễ dàng tích hợp thêm Distributed Lock (như Redis Redlock).
 
 ---
 
 ## 🧪 Kết Quả Kiểm Thử (Unit Tests & Demo)
 
 ### 1. Kiểm Thử Đơn Vị (Unit Tests)
+
 Toàn bộ service cốt lõi được kiểm thử với `@nestjs/testing` và Jest:
-* **Test Suites:** 3 passed, 3 total
-* **Tests:** **100% Passed**
-* **Code Coverage:** Đạt độ phủ toàn diện trên toàn bộ các modules (`bitrix-oauth`, `bitrix-api`, `contacts`).
-* **Linter & Build:** `npm run lint` (0 errors), `npm run build` (Success).
+
+- **Test Suites:** 3 passed, 3 total
+- **Tests:** **63/63 Unit Tests Passed (100%)**
+- **Code Coverage:** Đạt độ phủ toàn diện với **100% Lines Coverage** trên toàn bộ các services (`bitrix-oauth`: 100%, `bitrix-api`: 100%, `contacts`: 100%).
+- **Linter & Build:** `npm run lint` (0 errors), `npm run build` (Success).
 
 ```bash
 # Chạy Unit Tests:
@@ -257,22 +293,28 @@ npm test
 npm run test:cov
 ```
 
-### 2. Kết Quả Chạy Unit Test
-![Unit Test Results](docs/images/test/unit-test.png)
+### 2. Kết Quả Chạy Unit Test & Coverage Thực Tế
+
+![Unit Test Results](docs/images/test/test.png)
 
 ### 3. Kết Quả Test Postman (Contact & Requisite)
 
 #### 1. Lấy danh sách Contact có phân trang (`GET /contacts`)
+
 ![Test GET Contacts](docs/images/postman/get.png)
 
 #### 2. Thêm mới Contact kèm Requisite (`POST /contacts`)
+
 ![Test POST Contact](docs/images/postman/create.png)
 
 #### 3. Xem chi tiết Contact kèm Requisite theo ID (`GET /contacts/:id`)
+
 ![Test GET Contact By ID](docs/images/postman/get-by-id.png)
 
 #### 4. Cập nhật Contact & Requisite (`PUT /contacts/:id`)
+
 ![Test PUT Contact](docs/images/postman/update.png)
 
 #### 5. Xóa Contact kèm Requisite theo ID (`DELETE /contacts/:id`)
+
 ![Test DELETE Contact](docs/images/postman/delete-contact.png)
