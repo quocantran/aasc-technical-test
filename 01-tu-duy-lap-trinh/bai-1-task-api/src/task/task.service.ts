@@ -27,8 +27,8 @@ export class TaskService {
 
   // Retrieve paginated tasks sorted by createdAt descending
   async findAll(query?: PaginationQueryDto): Promise<PaginatedTaskResponseDto> {
-    const page = Math.max(1, Number(query?.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(query?.limit) || 20));
+    const page = Math.max(1, Math.floor(query?.page ?? 1));
+    const limit = Math.min(100, Math.max(1, Math.floor(query?.limit ?? 20)));
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
@@ -42,12 +42,14 @@ export class TaskService {
       this.taskModel.countDocuments().exec(),
     ]);
 
+    const totalPages = total > 0 ? Math.ceil(total / limit) : 1;
+
     return {
       data,
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit) || 1,
+      totalPages,
     };
   }
 

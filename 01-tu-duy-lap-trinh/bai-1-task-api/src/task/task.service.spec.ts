@@ -158,6 +158,77 @@ describe('TaskService', () => {
       expect(result.limit).toBe(10);
       expect(result.totalPages).toBe(3);
     });
+
+    // Test Case 5b: Return totalPages as 1 when total is 0 (empty list)
+    it('5b. should return totalPages as 1 when total database count is 0', async () => {
+      mockTaskModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue([]),
+              }),
+            }),
+          }),
+        }),
+      });
+      mockTaskModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+
+      const result = await service.findAll({ page: 1, limit: 20 });
+
+      expect(result.data).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(result.totalPages).toBe(1);
+    });
+
+    // Test Case 5c: Fallback to defaults when page and limit are invalid (<= 0 or not integer)
+    it('5c. should fallback to defaults when page or limit are invalid or negative', async () => {
+      mockTaskModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue([mockTask]),
+              }),
+            }),
+          }),
+        }),
+      });
+      mockTaskModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
+
+      const result = await service.findAll({ page: -5, limit: 0 });
+
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(1);
+      expect(result.totalPages).toBe(1);
+    });
+
+    // Test Case 5d: Cap limit at 100 when requested limit exceeds maximum
+    it('5d. should cap limit at 100 when requested limit exceeds 100', async () => {
+      mockTaskModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue([mockTask]),
+              }),
+            }),
+          }),
+        }),
+      });
+      mockTaskModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(150),
+      });
+
+      const result = await service.findAll({ page: 1, limit: 500 });
+
+      expect(result.limit).toBe(100);
+      expect(result.totalPages).toBe(2);
+    });
   });
 
   describe('findOne', () => {
